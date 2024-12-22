@@ -9,7 +9,7 @@ import javafx.scene.text.Font;
 public class LineNumberPanel extends TextArea {
 
     public LineNumberPanel() {
-        this.setMaxWidth(30);
+        this.setMaxWidth(40);
         this.setMinHeight(500);
         this.setEditable(false);
         this.setWrapText(false);
@@ -36,8 +36,8 @@ public class LineNumberPanel extends TextArea {
     }
 
     public void updateLineNumbers(int lineCount) {
-        String lines = "";
-        for (int i = 1; i <= lineCount; i++) {
+        String lines = 1 + "\n";
+        for (int i = 2; i <= lineCount; i++) {
             lines += i + "\n";
         }
         this.setText(lines);

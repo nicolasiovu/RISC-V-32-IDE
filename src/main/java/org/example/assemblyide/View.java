@@ -31,6 +31,7 @@ public class View {
         this.lineNumberPanel = new LineNumberPanel();
         this.textEditor = new TextEditor(this.memoryModel, this.lineNumberPanel);
         this.registerPanel = new RegisterPanel(this.memoryModel);
+        this.memoryModel.addObserver(this.registerPanel);
 
         BorderPane root = new BorderPane();
         root.setTop(this.createMenuBar());

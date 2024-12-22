@@ -46,6 +46,10 @@ public class TextEditor extends TextArea {
             this.lineNumberPanel.setScrollTop(newValue.doubleValue());
         });
 
+        this.textProperty().addListener((observable, oldValue, newValue) -> {
+            this.lineNumberPanel.setScrollTop(this.getScrollTop());
+        });
+
         this.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == javafx.scene.input.KeyCode.TAB) {
                 int caretPosition = this.getCaretPosition();
