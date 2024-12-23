@@ -31,7 +31,7 @@ public class ITypeInstruction implements Instruction {
                 case "srai" -> rs1Val >> imm;
                 case "slti" -> (rs1Val < imm) ? 1 : 0;
                 case "sltui" -> (Integer.compareUnsigned(rs1Val, imm) < 0) ? 1 : 0;
-                default -> this.memoryModel.getRegisterValue(this.rd);
+                default -> throw new IllegalArgumentException("Unknown instruction");
             };
             this.memoryModel.updateRegister(this.rd, rdVal);
         } catch (Exception e) {

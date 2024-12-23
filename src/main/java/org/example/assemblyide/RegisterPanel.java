@@ -61,6 +61,8 @@ public class RegisterPanel extends GridPane implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         int register = (Integer) arg;
-        this.registers[register].setText(Integer.toString(this.memoryModel.getRegisterValue(register)));
+        int value = this.memoryModel.getRegisterValue(register);
+        String formattedHex = String.format("%08X", value);
+        this.registers[register].setText(formattedHex);
     }
 }

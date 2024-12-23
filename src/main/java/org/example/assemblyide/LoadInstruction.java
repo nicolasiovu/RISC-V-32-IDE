@@ -45,7 +45,7 @@ public class LoadInstruction implements Instruction {
                     rdVal = hw & 0xFFFF;
                     break;
                 default:
-                    rdVal = this.memoryModel.getRegisterValue(this.rd);
+                    throw new IllegalArgumentException("Unknown instruction");
             }
             this.memoryModel.updateRegister(this.rd, rdVal);
         } catch (Exception e) {

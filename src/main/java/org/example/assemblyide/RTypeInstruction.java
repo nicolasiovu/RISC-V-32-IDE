@@ -32,7 +32,7 @@ public class RTypeInstruction implements Instruction {
                 case "sra" -> rs1Val >> rs2Val;
                 case "slt" -> (rs1Val < rs2Val) ? 1 : 0;
                 case "sltu" -> (Integer.compareUnsigned(rs1Val, rs2Val) < 0) ? 1 : 0;
-                default -> this.memoryModel.getRegisterValue(this.rd);
+                default -> throw new IllegalArgumentException("Unknown instruction");
             };
             this.memoryModel.updateRegister(this.rd, rdVal);
         } catch (Exception e) {
