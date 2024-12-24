@@ -89,6 +89,7 @@ public class Compiler implements EventHandler<ActionEvent> {
             this.instructions.add(InstructionFactory.getInstruction(this.memoryModel, instruction, m));
         }
         this.error = "";
+        this.memoryModel.resetPc();
         return true;
     }
 

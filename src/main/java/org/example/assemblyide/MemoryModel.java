@@ -34,6 +34,12 @@ public class MemoryModel extends Observable {
         return this.pc;
     }
 
+    public void resetPc() {
+        this.pc = 0;
+        this.setChanged();
+        this.notifyObservers("pc");
+    }
+
     public boolean updatePc(int imm) {
         this.pc += imm;
         this.setChanged();
