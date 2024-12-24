@@ -20,6 +20,9 @@ public class View {
     private LineNumberPanel lineNumberPanel;
     private RegisterPanel registerPanel;
 
+    private Compiler compiler;
+    private Program program;
+
 
     public View(MemoryModel model, Stage stage) {
         this.stage = stage;
@@ -32,6 +35,9 @@ public class View {
         this.textEditor = new TextEditor(this.memoryModel, this.lineNumberPanel);
         this.registerPanel = new RegisterPanel(this.memoryModel);
         this.memoryModel.addObserver(this.registerPanel);
+
+        this.compiler = new Compiler(this.memoryModel, this.textEditor);
+        this.program = new Program(this.memoryModel, this.compiler);
 
         BorderPane root = new BorderPane();
         root.setTop(this.createMenuBar());
@@ -62,6 +68,18 @@ public class View {
 
         menuItem = new MenuItem("Save");
         menuItem.setOnAction((ActionEvent event) -> {});
+        menu.getItems().add(menuItem);
+
+        menuBar.getMenus().add(menu);
+
+        menu = new Menu("Program");
+
+        menuItem = new MenuItem("Compile");
+        menuItem.setOnAction(this.compiler);
+        menu.getItems().add(menuItem);
+
+        menuItem = new MenuItem("Run");
+        menuItem.setOnAction(this.program);
         menu.getItems().add(menuItem);
 
         menuBar.getMenus().add(menu);

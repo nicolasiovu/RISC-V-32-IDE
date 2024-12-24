@@ -30,6 +30,17 @@ public class MemoryModel extends Observable {
         this.notifyObservers(register);
     }
 
+    public int getPc() {
+        return this.pc;
+    }
+
+    public boolean updatePc(int imm) {
+        this.pc += imm;
+        this.setChanged();
+        this.notifyObservers("pc");
+        return this.pc >= 0 && this.pc % 4 == 0;
+    }
+
     public byte readByte(int address) {
         int page = address / PAGE_SIZE;
         int offset = address & PAGE_MASK;

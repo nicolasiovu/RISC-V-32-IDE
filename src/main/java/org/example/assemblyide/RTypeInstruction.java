@@ -35,6 +35,7 @@ public class RTypeInstruction implements Instruction {
                 default -> throw new IllegalArgumentException("Unknown instruction");
             };
             this.memoryModel.updateRegister(this.rd, rdVal);
+            this.memoryModel.updatePc(4);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

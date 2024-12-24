@@ -22,7 +22,6 @@ public class ITypeInstruction implements Instruction {
         try {
             int rdVal = switch (this.name) {
                 case "addi" -> rs1Val + imm;
-                case "subi" -> rs1Val - imm;
                 case "xori" -> rs1Val ^ imm;
                 case "ori" -> rs1Val | imm;
                 case "andi" -> rs1Val & imm;
@@ -34,6 +33,7 @@ public class ITypeInstruction implements Instruction {
                 default -> throw new IllegalArgumentException("Unknown instruction");
             };
             this.memoryModel.updateRegister(this.rd, rdVal);
+            this.memoryModel.updatePc(4);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

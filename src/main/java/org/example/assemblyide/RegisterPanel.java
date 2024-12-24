@@ -10,13 +10,14 @@ import java.util.Observer;
 
 public class RegisterPanel extends GridPane implements Observer {
     private MemoryModel memoryModel;
-    private int pc;
+    private Label pc;
     private Label[] registers;
+    private Label recentRegister;
 
     public RegisterPanel(MemoryModel memoryModel) {
         this.memoryModel = memoryModel;
         this.registers = new Label[32];
-        this.pc = 0;
+        this.pc = new Label();
 
         Label programCounter = new Label();
         programCounter.setStyle("-fx-text-fill: #679ea6;" +
@@ -25,12 +26,11 @@ public class RegisterPanel extends GridPane implements Observer {
         programCounter.setText("pc");
         this.add(programCounter, 0, 0);
 
-        Label pcValue = new Label();
-        pcValue.setStyle("-fx-text-fill: #7a7979;" +
+        this.pc.setStyle("-fx-text-fill: #7a7979;" +
                 "-fx-font-family: 'Consolas';" +
                 "-fx-font-size: 12px;");
-        pcValue.setText("00000000");
-        this.add(pcValue, 1, 0);
+        this.pc.setText("00000000");
+        this.add(this.pc, 1, 0);
 
         for (int i=0; i < this.registers.length; i++) {
             Label registerName = new Label();
@@ -60,9 +60,25 @@ public class RegisterPanel extends GridPane implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        int register = (Integer) arg;
-        int value = this.memoryModel.getRegisterValue(register);
-        String formattedHex = String.format("%08X", value);
-        this.registers[register].setText(formattedHex);
+        if (arg != "pc") {
+            int register = (Integer) arg;
+            int value = this.memoryModel.getRegisterValue(register);
+            String formattedHex = String.format("%08X", value);
+            this.registers[register].setText(formattedHex);
+            this.registers[register].setStyle("-fx-text-fill: #ffffff;" +
+                    "-fx-font-family: 'Consolas';" +
+                    "-fx-font-size: 12px;" +
+                    "-fx-background-color: rgba(255,0,0,0.85);");
+            if (this.recentRegister != null) {
+                this.recentRegister.setStyle("-fx-text-fill: #7a7979;" +
+                        "-fx-font-family: 'Consolas';" +
+                        "-fx-font-size: 12px;");
+            }
+            this.recentRegister = this.registers[register];
+        } else {
+            int value = this.memoryModel.getPc();
+            String pcHex = String.format("%08X", value);
+            this.pc.setText(pcHex);
+        }
     }
 }
