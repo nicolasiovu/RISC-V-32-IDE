@@ -10,6 +10,7 @@ public class MemoryModel extends Observable {
     private int pc;
     private HashMap<Integer, Integer> registers;
     private HashMap<Integer, byte[]> memory;
+    private HashMap<String, Integer> labels;
 
     public MemoryModel() {
         this.pc = 0;
@@ -18,6 +19,7 @@ public class MemoryModel extends Observable {
             this.registers.put(i, 0);
         }
         this.memory = new HashMap<>();
+        this.labels = new HashMap<>();
     }
 
     public int getRegisterValue(int register) {
@@ -45,6 +47,14 @@ public class MemoryModel extends Observable {
         this.setChanged();
         this.notifyObservers("pc");
         return this.pc >= 0 && this.pc % 4 == 0;
+    }
+
+    public void addLabel(String label, int index) {
+        this.labels.put(label, index);
+    }
+
+    public void resetLabels() {
+        this.labels = new HashMap<>();
     }
 
     public byte readByte(int address) {

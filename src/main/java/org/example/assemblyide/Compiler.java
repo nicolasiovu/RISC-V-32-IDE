@@ -13,6 +13,9 @@ public class Compiler implements EventHandler<ActionEvent> {
     private ArrayList<Instruction> instructions;
     private String error;
 
+    static Pattern immediate = Pattern.compile("-?0|-?[1-9][0-9]*$");
+    static Pattern label = Pattern.compile("^[a-zA-Z_]+[a-zA-Z0-9_]*:$");
+
     private Pattern add = Pattern.compile("^add(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
     private Pattern sub = Pattern.compile("^sub(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
     private Pattern xor = Pattern.compile("^xor(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
@@ -24,7 +27,28 @@ public class Compiler implements EventHandler<ActionEvent> {
     private Pattern slt = Pattern.compile("^slt(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
     private Pattern sltu = Pattern.compile("^sltu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
 
-    private Pattern addi = Pattern.compile("^addi(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(0|[1-9][0-9]*)$");
+    private Pattern addi = Pattern.compile("^addi(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern xori = Pattern.compile("^xori(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern ori = Pattern.compile("^ori(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern andi = Pattern.compile("^andi(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern slli = Pattern.compile("^slli(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern srli = Pattern.compile("^srli(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern srai = Pattern.compile("^srai(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern slti = Pattern.compile("^slti(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern sltiu = Pattern.compile("^sltiu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+
+    private Pattern lb = Pattern.compile("^lb(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern lh = Pattern.compile("^lh(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern lw = Pattern.compile("^lw(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern lbu = Pattern.compile("^lbu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern lhu = Pattern.compile("^lhu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+
+    private Pattern sb = Pattern.compile("^sb(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern sh = Pattern.compile("^sh(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern sw = Pattern.compile("^sw(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+
+    private Pattern beqImm = Pattern.compile("^beq(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern beqLabel = Pattern.compile("^beq(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
 
     public Compiler(MemoryModel memoryModel, TextEditor textEditor) {
         this.memoryModel = memoryModel;
@@ -39,6 +63,11 @@ public class Compiler implements EventHandler<ActionEvent> {
         Matcher m;
         String[] lines = this.textEditor.getText().split("\n");
         for (String line: lines) {
+            String potentialLabel = line.trim();
+            if (label.matcher(potentialLabel).matches()) {
+                this.memoryModel.addLabel(potentialLabel.replace(":", ""), this.instructions.size());
+                continue;
+            }
             String originalLine = line;
             lineNumber++;
             String instruction = line.split(" ")[0];
@@ -77,6 +106,61 @@ public class Compiler implements EventHandler<ActionEvent> {
                     break;
                 case "addi":
                     m = addi.matcher(line);
+                    break;
+                case "xori":
+                    m = xori.matcher(line);
+                    break;
+                case "ori":
+                    m = ori.matcher(line);
+                    break;
+                case "andi":
+                    m = andi.matcher(line);
+                    break;
+                case "slli":
+                    m = slli.matcher(line);
+                    break;
+                case "srli":
+                    m = srli.matcher(line);
+                    break;
+                case "srai":
+                    m = srai.matcher(line);
+                    break;
+                case "slti":
+                    m = slti.matcher(line);
+                    break;
+                case "sltiu":
+                    m = sltiu.matcher(line);
+                    break;
+                case "lb":
+                    m = lb.matcher(line);
+                    break;
+                case "lh":
+                    m = lh.matcher(line);
+                    break;
+                case "lw":
+                    m = lw.matcher(line);
+                    break;
+                case "lbu":
+                    m = lbu.matcher(line);
+                    break;
+                case "lhu":
+                    m = lhu.matcher(line);
+                    break;
+                case "sb":
+                    m = sb.matcher(line);
+                    break;
+                case "sh":
+                    m = sh.matcher(line);
+                    break;
+                case "sw":
+                    m = sw.matcher(line);
+                    break;
+                case "beq":
+                    if (beqLabel.matcher(line).matches()) {
+                        m = beqLabel.matcher(line);
+                    } else {
+                        m = beqImm.matcher(line);
+                    }
                     break;
                 default:
                     this.error = "Line " + lineNumber + ": '" + originalLine + "' Unrecognized instruction.";
