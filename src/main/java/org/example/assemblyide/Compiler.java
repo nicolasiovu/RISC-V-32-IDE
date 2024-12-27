@@ -13,8 +13,7 @@ public class Compiler implements EventHandler<ActionEvent> {
     private ArrayList<Instruction> instructions;
     private String error;
 
-    static Pattern immediate = Pattern.compile("-?0|-?[1-9][0-9]*$");
-    static Pattern label = Pattern.compile("^[a-zA-Z_]+[a-zA-Z0-9_]*:$");
+    private Pattern label = Pattern.compile("^[a-zA-Z_]+[a-zA-Z0-9_]*:$");
 
     private Pattern add = Pattern.compile("^add(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
     private Pattern sub = Pattern.compile("^sub(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
@@ -49,6 +48,8 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Pattern beqImm = Pattern.compile("^beq(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
     private Pattern beqLabel = Pattern.compile("^beq(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern bneImm = Pattern.compile("^bne(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern bneLabel = Pattern.compile("^bne(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
 
     public Compiler(MemoryModel memoryModel, TextEditor textEditor) {
         this.memoryModel = memoryModel;
@@ -59,13 +60,16 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     public boolean compile() {
         this.instructions.clear();
+        this.memoryModel.resetLabels();
+        this.setLabels();
+        InstructionFactory instructionFactory = new InstructionFactory(this.memoryModel, this);
         int lineNumber = 0;
         Matcher m;
         String[] lines = this.textEditor.getText().split("\n");
         for (String line: lines) {
-            String potentialLabel = line.trim();
-            if (label.matcher(potentialLabel).matches()) {
-                this.memoryModel.addLabel(potentialLabel.replace(":", ""), this.instructions.size());
+            boolean usesLabel = false;
+            line = line.trim();
+            if (label.matcher(line).matches()) {
                 continue;
             }
             String originalLine = line;
@@ -158,8 +162,17 @@ public class Compiler implements EventHandler<ActionEvent> {
                 case "beq":
                     if (beqLabel.matcher(line).matches()) {
                         m = beqLabel.matcher(line);
+                        usesLabel = true;
                     } else {
                         m = beqImm.matcher(line);
+                    }
+                    break;
+                case "bne":
+                    if (bneLabel.matcher(line).matches()) {
+                        m = bneLabel.matcher(line);
+                        usesLabel = true;
+                    } else {
+                        m = bneImm.matcher(line);
                     }
                     break;
                 default:
@@ -170,11 +183,26 @@ public class Compiler implements EventHandler<ActionEvent> {
                 this.error = "Line " + lineNumber + ": '" + originalLine + "' Invalid operands.";
                 return false;
             }
-            this.instructions.add(InstructionFactory.getInstruction(this.memoryModel, instruction, m));
+            Instruction toAdd = instructionFactory.getInstruction(instruction, m, usesLabel);
+            if (toAdd == null) {
+                this.error = "Line " + lineNumber + ": '" + originalLine + instructionFactory.getError();
+                return false;
+            }
+            this.instructions.add(instructionFactory.getInstruction(instruction, m, usesLabel));
         }
         this.error = "";
         this.memoryModel.resetPc();
         return true;
+    }
+
+    public void setLabels() {
+        String[] lines = this.textEditor.getText().split("\n");
+        for (String line: lines) {
+            String potentialLabel = line.trim();
+            if (label.matcher(potentialLabel).matches()) {
+                this.memoryModel.addLabel(potentialLabel.replace(":", ""), this.instructions.size());
+            }
+        }
     }
 
     public String getError() {

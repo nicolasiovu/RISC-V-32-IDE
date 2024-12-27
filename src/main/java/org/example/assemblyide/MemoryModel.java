@@ -53,6 +53,10 @@ public class MemoryModel extends Observable {
         this.labels.put(label, index);
     }
 
+    public int lookupLabel(String label) {
+        return this.labels.get(label);
+    }
+
     public void resetLabels() {
         this.labels = new HashMap<>();
     }
