@@ -38,7 +38,7 @@ public class InstructionFactory {
                 imm = Integer.parseInt(m.group(2));
                 rs1 = Integer.parseInt(m.group(3).replace("x", ""));
                 return new STypeInstruction(memoryModel, instructionType, rs1, rs2, imm);
-            case "beq", "bne":
+            case "beq", "bne", "blt", "bge", "bltu", "bgeu":
                 rs1 = Integer.parseInt(m.group(1).replace("x", ""));
                 rs2 = Integer.parseInt(m.group(2).replace("x", ""));
                 if (!usesLabel) {
@@ -64,9 +64,6 @@ public class InstructionFactory {
         ArrayList<Instruction> instructions = this.compiler.getInstructions();
         try {
             int index = this.memoryModel.lookupLabel(label);
-            System.out.println("the index: " + index);
-            System.out.println("the size: " + instructions.size());
-            System.out.println("the imm: " + ((index - instructions.size()) << 1));
             return (index - instructions.size()) << 1;
         } catch (NullPointerException e) {
             return -1;

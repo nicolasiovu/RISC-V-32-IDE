@@ -12,6 +12,7 @@ public class Compiler implements EventHandler<ActionEvent> {
     private TextEditor textEditor;
     private ArrayList<Instruction> instructions;
     private String error;
+    private boolean usesLabel;
 
     private Pattern label = Pattern.compile("^[a-zA-Z_]+[a-zA-Z0-9_]*:$");
 
@@ -56,128 +57,33 @@ public class Compiler implements EventHandler<ActionEvent> {
         this.textEditor = textEditor;
         this.instructions = new ArrayList<>();
         this.error = "";
+        this.usesLabel = false;
     }
 
     public boolean compile() {
         this.instructions.clear();
         this.memoryModel.resetLabels();
         this.setLabels();
+        this.usesLabel = false;
         InstructionFactory instructionFactory = new InstructionFactory(this.memoryModel, this);
         int lineNumber = 0;
         Matcher m;
         String[] lines = this.textEditor.getText().split("\n");
         for (String line: lines) {
-            boolean usesLabel = false;
+            this.usesLabel = false;
             line = line.trim();
             if (label.matcher(line).matches()) {
                 continue;
             }
             String originalLine = line;
             lineNumber++;
-            String instruction = line.split(" ")[0];
-            line = line.replaceAll("\\s+", "");
             if (line.isEmpty()) { continue; }
-            switch (instruction) {
-                case "add":
-                    m = add.matcher(line);
-                    break;
-                case "sub":
-                    m = sub.matcher(line);
-                    break;
-                case "xor":
-                    m = xor.matcher(line);
-                    break;
-                case "or":
-                    m = or.matcher(line);
-                    break;
-                case "and":
-                    m = and.matcher(line);
-                    break;
-                case "sll":
-                    m = sll.matcher(line);
-                    break;
-                case "srl":
-                    m = srl.matcher(line);
-                    break;
-                case "sra":
-                    m = sra.matcher(line);
-                    break;
-                case "slt":
-                    m = slt.matcher(line);
-                    break;
-                case "sltu":
-                    m = sltu.matcher(line);
-                    break;
-                case "addi":
-                    m = addi.matcher(line);
-                    break;
-                case "xori":
-                    m = xori.matcher(line);
-                    break;
-                case "ori":
-                    m = ori.matcher(line);
-                    break;
-                case "andi":
-                    m = andi.matcher(line);
-                    break;
-                case "slli":
-                    m = slli.matcher(line);
-                    break;
-                case "srli":
-                    m = srli.matcher(line);
-                    break;
-                case "srai":
-                    m = srai.matcher(line);
-                    break;
-                case "slti":
-                    m = slti.matcher(line);
-                    break;
-                case "sltiu":
-                    m = sltiu.matcher(line);
-                    break;
-                case "lb":
-                    m = lb.matcher(line);
-                    break;
-                case "lh":
-                    m = lh.matcher(line);
-                    break;
-                case "lw":
-                    m = lw.matcher(line);
-                    break;
-                case "lbu":
-                    m = lbu.matcher(line);
-                    break;
-                case "lhu":
-                    m = lhu.matcher(line);
-                    break;
-                case "sb":
-                    m = sb.matcher(line);
-                    break;
-                case "sh":
-                    m = sh.matcher(line);
-                    break;
-                case "sw":
-                    m = sw.matcher(line);
-                    break;
-                case "beq":
-                    if (beqLabel.matcher(line).matches()) {
-                        m = beqLabel.matcher(line);
-                        usesLabel = true;
-                    } else {
-                        m = beqImm.matcher(line);
-                    }
-                    break;
-                case "bne":
-                    if (bneLabel.matcher(line).matches()) {
-                        m = bneLabel.matcher(line);
-                        usesLabel = true;
-                    } else {
-                        m = bneImm.matcher(line);
-                    }
-                    break;
-                default:
-                    this.error = "Line " + lineNumber + ": '" + originalLine + "' Unrecognized instruction.";
-                    return false;
+            m = this.decodeLine(line);
+            line = line.trim();
+            String instruction = line.split(" ")[0];
+            if (m == null) {
+                this.error = "Line " + lineNumber + ": '" + originalLine + "' Unrecognized instruction.";
+                return false;
             }
             if (!m.matches()) {
                 this.error = "Line " + lineNumber + ": '" + originalLine + "' Invalid operands.";
@@ -195,12 +101,126 @@ public class Compiler implements EventHandler<ActionEvent> {
         return true;
     }
 
+    private Matcher decodeLine(String line) {
+        Matcher m;
+        line = line.trim();
+        String instruction = line.split(" ")[0];
+        line = line.replaceAll("\\s+", "");
+        switch (instruction) {
+            case "add":
+                m = add.matcher(line);
+                break;
+            case "sub":
+                m = sub.matcher(line);
+                break;
+            case "xor":
+                m = xor.matcher(line);
+                break;
+            case "or":
+                m = or.matcher(line);
+                break;
+            case "and":
+                m = and.matcher(line);
+                break;
+            case "sll":
+                m = sll.matcher(line);
+                break;
+            case "srl":
+                m = srl.matcher(line);
+                break;
+            case "sra":
+                m = sra.matcher(line);
+                break;
+            case "slt":
+                m = slt.matcher(line);
+                break;
+            case "sltu":
+                m = sltu.matcher(line);
+                break;
+            case "addi":
+                m = addi.matcher(line);
+                break;
+            case "xori":
+                m = xori.matcher(line);
+                break;
+            case "ori":
+                m = ori.matcher(line);
+                break;
+            case "andi":
+                m = andi.matcher(line);
+                break;
+            case "slli":
+                m = slli.matcher(line);
+                break;
+            case "srli":
+                m = srli.matcher(line);
+                break;
+            case "srai":
+                m = srai.matcher(line);
+                break;
+            case "slti":
+                m = slti.matcher(line);
+                break;
+            case "sltiu":
+                m = sltiu.matcher(line);
+                break;
+            case "lb":
+                m = lb.matcher(line);
+                break;
+            case "lh":
+                m = lh.matcher(line);
+                break;
+            case "lw":
+                m = lw.matcher(line);
+                break;
+            case "lbu":
+                m = lbu.matcher(line);
+                break;
+            case "lhu":
+                m = lhu.matcher(line);
+                break;
+            case "sb":
+                m = sb.matcher(line);
+                break;
+            case "sh":
+                m = sh.matcher(line);
+                break;
+            case "sw":
+                m = sw.matcher(line);
+                break;
+            case "beq":
+                if (beqLabel.matcher(line).matches()) {
+                    m = beqLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = beqImm.matcher(line);
+                }
+                break;
+            case "bne":
+                if (bneLabel.matcher(line).matches()) {
+                    m = bneLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = bneImm.matcher(line);
+                }
+                break;
+            default:
+                return null;
+        }
+        return m;
+    }
+
     public void setLabels() {
         String[] lines = this.textEditor.getText().split("\n");
+        int numInstructions = 0;
         for (String line: lines) {
             String potentialLabel = line.trim();
             if (label.matcher(potentialLabel).matches()) {
-                this.memoryModel.addLabel(potentialLabel.replace(":", ""), this.instructions.size());
+                this.memoryModel.addLabel(potentialLabel.replace(":", ""), numInstructions);
+            }
+            Matcher m = this.decodeLine(line);
+            if (m != null && m.matches()) {
+                numInstructions++;
             }
         }
     }
