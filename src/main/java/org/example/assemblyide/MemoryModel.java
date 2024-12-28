@@ -43,10 +43,14 @@ public class MemoryModel extends Observable {
     }
 
     public boolean updatePc(int imm) {
+        boolean valid = this.pc >= 0 && this.pc % 4 == 0;
+        if (!valid) {
+            return false;
+        }
         this.pc += imm;
         this.setChanged();
         this.notifyObservers("pc");
-        return this.pc >= 0 && this.pc % 4 == 0;
+        return true;
     }
 
     public void addLabel(String label, int index) {

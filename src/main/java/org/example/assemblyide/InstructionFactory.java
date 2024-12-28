@@ -43,6 +43,10 @@ public class InstructionFactory {
                 rs2 = Integer.parseInt(m.group(2).replace("x", ""));
                 if (!usesLabel) {
                     imm = Integer.parseInt(m.group(3));
+                    if (imm < -2048 || imm > 2047) {
+                        this.error = "Immediate value " + imm +  "exceeds branch range.";
+                        return null;
+                    }
                 } else {
                     imm = this.getImmFromLabel(m.group(3));
                     if (imm == -1) {
