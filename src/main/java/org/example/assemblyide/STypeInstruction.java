@@ -4,6 +4,7 @@ public class STypeInstruction implements Instruction {
     private MemoryModel memoryModel;
 
     private String name;
+    private String error;
     private int rs1;
     private int rs2;
     private int imm;
@@ -11,9 +12,15 @@ public class STypeInstruction implements Instruction {
     public STypeInstruction(MemoryModel memoryModel, String name, int rs1, int rs2, int imm) {
         this.memoryModel = memoryModel;
         this.name = name;
+        this.error = "";
         this.rs1 = rs1;
         this.rs2 = rs2;
         this.imm = imm;
+    }
+
+    @Override
+    public String getError() {
+        return this.error;
     }
 
     @Override
@@ -40,7 +47,7 @@ public class STypeInstruction implements Instruction {
             }
             this.memoryModel.updatePc(4);
         } catch (Exception e) {
-            e.printStackTrace();
+            this.error = e.getMessage();
             return false;
         }
         return true;

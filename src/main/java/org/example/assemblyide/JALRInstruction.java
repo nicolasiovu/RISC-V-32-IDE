@@ -1,16 +1,18 @@
 package org.example.assemblyide;
 
-public class JALInstruction implements Instruction {
+public class JALRInstruction implements Instruction {
     private MemoryModel memoryModel;
 
     private String error;
     private int rd;
+    private int rs1;
     private int imm;
 
-    public JALInstruction(MemoryModel memoryModel, int rd, int imm) {
+    public JALRInstruction(MemoryModel memoryModel, int rd, int rs1, int imm) {
         this.memoryModel = memoryModel;
         this.error = "";
         this.rd = rd;
+        this.rs1 = rs1;
         this.imm = imm;
     }
 
@@ -23,7 +25,7 @@ public class JALInstruction implements Instruction {
     public boolean execute() {
         int immBytes = this.imm << 1;
         this.memoryModel.updateRegister(this.rd, this.memoryModel.getPc() + 4);
-        if (!this.memoryModel.updatePc(immBytes)) {
+        if (!this.memoryModel.updatePc(this.memoryModel.getRegisterValue(this.rs1) + immBytes)) {
             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
             return false;
         }

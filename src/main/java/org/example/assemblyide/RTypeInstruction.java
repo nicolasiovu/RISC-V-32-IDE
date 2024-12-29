@@ -4,6 +4,7 @@ public class RTypeInstruction implements Instruction {
     private MemoryModel memoryModel;
 
     private String name;
+    private String error;
     private int rd;
     private int rs1;
     private int rs2;
@@ -11,9 +12,15 @@ public class RTypeInstruction implements Instruction {
     public RTypeInstruction(MemoryModel memoryModel, String name, int rd, int rs1, int rs2) {
         this.memoryModel = memoryModel;
         this.name = name;
+        this.error = "";
         this.rd = rd;
         this.rs1 = rs1;
         this.rs2 = rs2;
+    }
+
+    @Override
+    public String getError() {
+        return this.error;
     }
 
     @Override
@@ -37,7 +44,7 @@ public class RTypeInstruction implements Instruction {
             this.memoryModel.updateRegister(this.rd, rdVal);
             this.memoryModel.updatePc(4);
         } catch (Exception e) {
-            e.printStackTrace();
+            this.error = e.getMessage();
             return false;
         }
         return true;

@@ -27,7 +27,10 @@ public class Program implements EventHandler<ActionEvent> {
                 break;
             }
             Instruction instruction = instructions.get(pc / 4);
-            instruction.execute();
+            if (!instruction.execute()) {
+                this.error = instruction.getError();
+                return false;
+            }
         }
         return true;
     }

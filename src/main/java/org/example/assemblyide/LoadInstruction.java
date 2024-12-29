@@ -4,6 +4,7 @@ public class LoadInstruction implements Instruction {
     private MemoryModel memoryModel;
 
     private String name;
+    private String error;
     private int rd;
     private int rs1;
     private int imm;
@@ -11,9 +12,15 @@ public class LoadInstruction implements Instruction {
     public LoadInstruction(MemoryModel memoryModel, String name, int rd, int rs1, int imm) {
         this.memoryModel = memoryModel;
         this.name = name;
+        this.error = "";
         this.rd = rd;
         this.rs1 = rs1;
         this.imm = imm;
+    }
+
+    @Override
+    public String getError() {
+        return this.error;
     }
 
     @Override
@@ -50,7 +57,7 @@ public class LoadInstruction implements Instruction {
             this.memoryModel.updateRegister(this.rd, rdVal);
             this.memoryModel.updatePc(4);
         } catch (Exception e) {
-            e.printStackTrace();
+            this.error = e.getMessage();
             return false;
         }
         return true;
