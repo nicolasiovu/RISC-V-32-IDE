@@ -55,6 +55,31 @@ public class InstructionFactory {
                     }
                 }
                 return new BTypeInstruction(memoryModel, instructionType, rs1, rs2, imm);
+            case "jal":
+                rd = Integer.parseInt(m.group(1).replace("x", ""));
+                if (!usesLabel) {
+                    imm = Integer.parseInt(m.group(2).replace("x", ""));
+                    if (imm < -524288 || imm > 524287) {
+                        this.error = "Immediate value " + imm + "exceeds jal range.";
+                        return null;
+                    }
+                } else {
+                    imm = this.getImmFromLabel(m.group(2));
+                    if (imm == -1) {
+                        this.error = "Undefined reference to '" + m.group(2) + "'.";
+                        return null;
+                    }
+                }
+                return new JALInstruction(memoryModel, rd, imm);
+            case "jalr":
+                rd = Integer.parseInt(m.group(1).replace("x", ""));
+                rs1 = Integer.parseInt(m.group(2).replace("x", ""));
+                imm = Integer.parseInt(m.group(3).replace("x", ""));
+                if (imm < -2048 || imm > 2047) {
+                    this.error = "Immediate value " + imm +  "exceeds jalr range.";
+                    return null;
+                }
+                return new JALRInstruction(memoryModel, rd, rs1, imm);
             default:
                 return null;
         }

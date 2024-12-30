@@ -51,6 +51,18 @@ public class Compiler implements EventHandler<ActionEvent> {
     private Pattern beqLabel = Pattern.compile("^beq(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
     private Pattern bneImm = Pattern.compile("^bne(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
     private Pattern bneLabel = Pattern.compile("^bne(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern bltImm = Pattern.compile("^blt(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern bltLabel = Pattern.compile("^blt(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern bgeImm = Pattern.compile("^bge(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern bgeLabel = Pattern.compile("^bge(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern bltuImm = Pattern.compile("^bltu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern bltuLabel = Pattern.compile("^bltu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern bgeuImm = Pattern.compile("^bgeu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern bgeuLabel = Pattern.compile("^bgeu(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+
+    private Pattern jalImm = Pattern.compile("^jal(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)$");
+    private Pattern jalLabel = Pattern.compile("^jal(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern jalr = Pattern.compile("^jalr(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)");
 
     public Compiler(MemoryModel memoryModel, TextEditor textEditor) {
         this.memoryModel = memoryModel;
@@ -203,6 +215,49 @@ public class Compiler implements EventHandler<ActionEvent> {
                 } else {
                     m = bneImm.matcher(line);
                 }
+                break;
+            case "blt":
+                if (bltLabel.matcher(line).matches()) {
+                    m = bltLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = bltImm.matcher(line);
+                }
+                break;
+            case "bge":
+                if (bgeLabel.matcher(line).matches()) {
+                    m = bgeLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = bgeImm.matcher(line);
+                }
+                break;
+            case "bltu":
+                if (bltuLabel.matcher(line).matches()) {
+                    m = bltuLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = bltuImm.matcher(line);
+                }
+                break;
+            case "bgeu":
+                if (bgeuLabel.matcher(line).matches()) {
+                    m = bgeuLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = bgeuImm.matcher(line);
+                }
+                break;
+            case "jal":
+                if (jalLabel.matcher(line).matches()) {
+                    m = jalLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = jalImm.matcher(line);
+                }
+                break;
+            case "jalr":
+                m = jalr.matcher(line);
                 break;
             default:
                 return null;

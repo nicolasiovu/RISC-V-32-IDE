@@ -26,7 +26,7 @@ public class JALRInstruction implements Instruction {
         int immBytes = this.imm << 1;
         this.memoryModel.updateRegister(this.rd, this.memoryModel.getPc() + 4);
         if (!this.memoryModel.updatePc(this.memoryModel.getRegisterValue(this.rs1) + immBytes)) {
-            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
+            this.error = "pc = " + this.memoryModel.getRegisterValue(this.rs1) + immBytes + " is invalid.";
             return false;
         }
         return true;

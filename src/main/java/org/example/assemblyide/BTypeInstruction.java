@@ -37,6 +37,7 @@ public class BTypeInstruction implements Instruction {
                             return false;
                         }
                     } else {
+                        System.out.println("CALLING");
                         this.memoryModel.updatePc(4);
                     }
                     break;
