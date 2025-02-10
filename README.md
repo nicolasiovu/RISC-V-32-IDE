@@ -1,14 +1,26 @@
 A RISC-V 32 Assembly IDE being written in Java.
 
-Here are some goals:
+CURRENT PROJECT STATUS:
 
-- Step through functionality
-- Live register view
-- Live memory view
-- Custom text editor themes
+- Base set instructions ✅
 
-More ambitious ideas:
+- ECalls ✅ (Nearly complete)
 
-- "Pipeline" view (see what stage instructions are in as you step through)
+- Step-through functionality ✅
 
-Hopefully this can be an all around good educational tool for beginners to assembly, with the comfort of a lightweight text editor but visualization features for proper debugging.
+- Compile-time and runtime error messages ✅
+
+- I/O terminal ✅
+
+- Live register view with highlighting ✅
+
+COMING SOON:
+
+- Live memory view panel
+
+- .data section support
+
+- Pseudoinstructions support
+
+
+
