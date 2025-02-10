@@ -8,14 +8,18 @@ public class STypeInstruction implements Instruction {
     private int rs1;
     private int rs2;
     private int imm;
+    private int lineNum;
+    private String line;
 
-    public STypeInstruction(MemoryModel memoryModel, String name, int rs1, int rs2, int imm) {
+    public STypeInstruction(MemoryModel memoryModel, String name, int rs1, int rs2, int imm, int lineNum, String line) {
         this.memoryModel = memoryModel;
         this.name = name;
         this.error = "";
         this.rs1 = rs1;
         this.rs2 = rs2;
         this.imm = imm;
+        this.lineNum = lineNum;
+        this.line = line;
     }
 
     @Override
@@ -51,5 +55,10 @@ public class STypeInstruction implements Instruction {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getInstructionInfo() {
+        return "Line " + this.lineNum + ": " + this.line.replaceFirst("^\\s+", "");
     }
 }

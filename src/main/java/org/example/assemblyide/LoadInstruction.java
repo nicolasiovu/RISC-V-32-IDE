@@ -8,14 +8,18 @@ public class LoadInstruction implements Instruction {
     private int rd;
     private int rs1;
     private int imm;
+    private int lineNum;
+    private String line;
 
-    public LoadInstruction(MemoryModel memoryModel, String name, int rd, int rs1, int imm) {
+    public LoadInstruction(MemoryModel memoryModel, String name, int rd, int rs1, int imm, int lineNum, String line) {
         this.memoryModel = memoryModel;
         this.name = name;
         this.error = "";
         this.rd = rd;
         this.rs1 = rs1;
         this.imm = imm;
+        this.lineNum = lineNum;
+        this.line = line;
     }
 
     @Override
@@ -61,5 +65,10 @@ public class LoadInstruction implements Instruction {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getInstructionInfo() {
+        return "Line " + this.lineNum + ": " + this.line.replaceFirst("^\\s+", "");
     }
 }

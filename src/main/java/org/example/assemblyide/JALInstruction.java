@@ -6,12 +6,16 @@ public class JALInstruction implements Instruction {
     private String error;
     private int rd;
     private int imm;
+    private int lineNum;
+    private String line;
 
-    public JALInstruction(MemoryModel memoryModel, int rd, int imm) {
+    public JALInstruction(MemoryModel memoryModel, int rd, int imm, int lineNum, String line) {
         this.memoryModel = memoryModel;
         this.error = "";
         this.rd = rd;
         this.imm = imm;
+        this.lineNum = lineNum;
+        this.line = line;
     }
 
     @Override
@@ -28,5 +32,10 @@ public class JALInstruction implements Instruction {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getInstructionInfo() {
+        return "Line " + this.lineNum + ": " + this.line.replaceFirst("^\\s+", "");
     }
 }

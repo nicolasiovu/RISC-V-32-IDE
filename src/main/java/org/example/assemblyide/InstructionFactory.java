@@ -1,64 +1,68 @@
 package org.example.assemblyide;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class InstructionFactory {
     private MemoryModel memoryModel;
     private Compiler compiler;
     private String error;
+    private IOTerminal io;
 
-    public InstructionFactory(MemoryModel memoryModel, Compiler compiler) {
+    public InstructionFactory(MemoryModel memoryModel, Compiler compiler, IOTerminal io) {
         this.memoryModel = memoryModel;
         this.compiler = compiler;
+        this.io = io;
         this.error = "";
     }
 
-    public Instruction getInstruction(String instructionType, Matcher m, boolean usesLabel) {
+    public Instruction getInstruction(String instructionType, Matcher m, boolean usesLabel, int lineNum, String inputLine) {
         int rd, rs1, rs2, imm;
         switch (instructionType) {
+            case "ecall":
+                return new ECall(memoryModel, io, lineNum);
             case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu":
-                rd = Integer.parseInt(m.group(1).replace("x", ""));
-                rs1 = Integer.parseInt(m.group(2).replace("x", ""));
-                rs2 = Integer.parseInt(m.group(3).replace("x", ""));
-                return new RTypeInstruction(memoryModel, instructionType, rd, rs1, rs2);
+                rd = this.getRegister(m.group(2));
+                rs1 = this.getRegister(m.group(3));
+                rs2 = this.getRegister(m.group(4));
+                return new RTypeInstruction(memoryModel, instructionType, rd, rs1, rs2, lineNum, inputLine);
             case "addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu":
-                rd = Integer.parseInt(m.group(1).replace("x", ""));
-                rs1 = Integer.parseInt(m.group(2).replace("x", ""));
-                imm = Integer.parseInt(m.group(3));
-                return new ITypeInstruction(memoryModel, instructionType, rd, rs1, imm);
+                rd = this.getRegister(m.group(2));
+                rs1 = this.getRegister(m.group(3));
+                imm = Integer.parseInt(m.group(4));
+                return new ITypeInstruction(memoryModel, instructionType, rd, rs1, imm, lineNum, inputLine);
             case "lb", "lh", "lw", "lbu", "lhu":
-                rd = Integer.parseInt(m.group(1).replace("x", ""));
-                imm = Integer.parseInt(m.group(2));
-                rs1 = Integer.parseInt(m.group(3).replace("x", ""));
-                return new LoadInstruction(memoryModel, instructionType, rd, rs1, imm);
+                rd = this.getRegister(m.group(2));
+                imm = Integer.parseInt(m.group(3));
+                rs1 = this.getRegister(m.group(4));
+                return new LoadInstruction(memoryModel, instructionType, rd, rs1, imm, lineNum, inputLine);
             case "sb", "sh", "sw":
-                rs2 = Integer.parseInt(m.group(1).replace("x", ""));
-                imm = Integer.parseInt(m.group(2));
-                rs1 = Integer.parseInt(m.group(3).replace("x", ""));
-                return new STypeInstruction(memoryModel, instructionType, rs1, rs2, imm);
+                rs2 = this.getRegister(m.group(2));
+                imm = Integer.parseInt(m.group(3));
+                rs1 = this.getRegister(m.group(4));
+                return new STypeInstruction(memoryModel, instructionType, rs1, rs2, imm, lineNum, inputLine);
             case "beq", "bne", "blt", "bge", "bltu", "bgeu":
-                rs1 = Integer.parseInt(m.group(1).replace("x", ""));
-                rs2 = Integer.parseInt(m.group(2).replace("x", ""));
+                rs1 = this.getRegister(m.group(2));
+                rs2 = this.getRegister(m.group(3));
                 if (!usesLabel) {
-                    imm = Integer.parseInt(m.group(3));
+                    imm = Integer.parseInt(m.group(4));
                     if (imm < -2048 || imm > 2047) {
                         this.error = "Immediate value " + imm +  "exceeds branch range.";
                         return null;
                     }
                 } else {
-                    imm = this.getImmFromLabel(m.group(3));
+                    imm = this.getImmFromLabel(m.group(4));
                     if (imm == -1) {
-                        this.error = "Undefined reference to '" + m.group(3) + "'.";
+                        this.error = "Undefined reference to '" + m.group(4) + "'.";
                         return null;
                     }
                 }
-                return new BTypeInstruction(memoryModel, instructionType, rs1, rs2, imm);
+                return new BTypeInstruction(memoryModel, instructionType, rs1, rs2, imm, lineNum, inputLine);
             case "jal":
-                rd = Integer.parseInt(m.group(1).replace("x", ""));
+                rd = this.getRegister(m.group(1));
                 if (!usesLabel) {
-                    imm = Integer.parseInt(m.group(2).replace("x", ""));
+                    imm = Integer.parseInt(m.group(2));
                     if (imm < -524288 || imm > 524287) {
                         this.error = "Immediate value " + imm + "exceeds jal range.";
                         return null;
@@ -70,16 +74,16 @@ public class InstructionFactory {
                         return null;
                     }
                 }
-                return new JALInstruction(memoryModel, rd, imm);
+                return new JALInstruction(memoryModel, rd, imm, lineNum, inputLine);
             case "jalr":
-                rd = Integer.parseInt(m.group(1).replace("x", ""));
-                rs1 = Integer.parseInt(m.group(2).replace("x", ""));
-                imm = Integer.parseInt(m.group(3).replace("x", ""));
+                rd = this.getRegister(m.group(1));
+                imm = Integer.parseInt(m.group(2));
+                rs1 = this.getRegister(m.group(3));
                 if (imm < -2048 || imm > 2047) {
                     this.error = "Immediate value " + imm +  "exceeds jalr range.";
                     return null;
                 }
-                return new JALRInstruction(memoryModel, rd, rs1, imm);
+                return new JALRInstruction(memoryModel, rd, rs1, imm, lineNum, inputLine);
             default:
                 return null;
         }
@@ -98,4 +102,12 @@ public class InstructionFactory {
             return -1;
         }
     }
+
+    private int getRegister(String regString) {
+        if (regString.matches("x(0|[1-9]|1[0-9]|2[0-9]|3[0-1])")) {
+            return Integer.parseInt(regString.replace("x", ""));
+        }
+        return Integer.parseInt(Util.registerMap.get(regString).replace("x", ""));
+    }
+
 }

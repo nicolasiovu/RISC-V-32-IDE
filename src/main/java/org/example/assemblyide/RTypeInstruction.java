@@ -8,14 +8,18 @@ public class RTypeInstruction implements Instruction {
     private int rd;
     private int rs1;
     private int rs2;
+    private int lineNum;
+    private String line;
 
-    public RTypeInstruction(MemoryModel memoryModel, String name, int rd, int rs1, int rs2) {
+    public RTypeInstruction(MemoryModel memoryModel, String name, int rd, int rs1, int rs2, int lineNum, String line) {
         this.memoryModel = memoryModel;
         this.name = name;
         this.error = "";
         this.rd = rd;
         this.rs1 = rs1;
         this.rs2 = rs2;
+        this.lineNum = lineNum;
+        this.line = line;
     }
 
     @Override
@@ -48,6 +52,11 @@ public class RTypeInstruction implements Instruction {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getInstructionInfo() {
+        return "Line " + this.lineNum + ": " + this.line.replaceFirst("^\\s+", "");
     }
 
 }

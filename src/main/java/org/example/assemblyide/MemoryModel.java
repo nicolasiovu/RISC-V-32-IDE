@@ -12,6 +12,8 @@ public class MemoryModel extends Observable {
     private HashMap<Integer, byte[]> memory;
     private HashMap<String, Integer> labels;
 
+    private boolean exit;
+
     public MemoryModel() {
         this.pc = 0;
         this.registers = new HashMap<>();
@@ -20,6 +22,7 @@ public class MemoryModel extends Observable {
         }
         this.memory = new HashMap<>();
         this.labels = new HashMap<>();
+        this.exit = false;
     }
 
     public int getRegisterValue(int register) {
@@ -46,10 +49,20 @@ public class MemoryModel extends Observable {
     public boolean updatePc(int imm) {
         boolean valid = this.pc + imm >= 0 && (this.pc + imm) % 4 == 0;
         if (!valid) {
-            System.out.println("REACHING");
             return false;
         }
         this.pc += imm;
+        this.setChanged();
+        this.notifyObservers("pc");
+        return true;
+    }
+
+    public boolean setPc(int imm) {
+        boolean valid = imm >= 0 && imm % 4 == 0;
+        if (!valid) {
+            return false;
+        }
+        this.pc = imm;
         this.setChanged();
         this.notifyObservers("pc");
         return true;
@@ -95,5 +108,17 @@ public class MemoryModel extends Observable {
         this.writeByte(address + 1, (byte) ((value >> 8) & 0xFF));
         this.writeByte(address + 2, (byte) ((value >> 16) & 0xFF));
         this.writeByte(address + 3, (byte) ((value >> 24) & 0xFF));
+    }
+
+    public void exit() {
+        this.exit = true;
+    }
+
+    public boolean exitCalled() {
+        return this.exit;
+    }
+
+    public void resetExit() {
+        this.exit = false;
     }
 }

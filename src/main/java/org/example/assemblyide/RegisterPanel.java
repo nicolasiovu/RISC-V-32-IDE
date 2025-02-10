@@ -37,7 +37,10 @@ public class RegisterPanel extends GridPane implements Observer {
             registerName.setStyle("-fx-text-fill: #7d34af;" +
                     "-fx-font-family: 'Consolas';" +
                     "-fx-font-size: 12px;");
-            registerName.setText("x" + i);
+            String register = "x" + i;
+            String alias = Util.reverseRegisterMap.get(register);
+            String paddedText = String.format("%-5s %s", alias, register);
+            registerName.setText(paddedText);
             this.add(registerName, 0, i + 1);
 
             Label registerValue = new Label();

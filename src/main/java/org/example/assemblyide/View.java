@@ -19,6 +19,8 @@ public class View {
     private TextEditor textEditor;
     private LineNumberPanel lineNumberPanel;
     private RegisterPanel registerPanel;
+    private TerminalPanel terminalPanel;
+    private IOTerminal ioTerminal;
 
     private Compiler compiler;
     private Program program;
@@ -34,16 +36,21 @@ public class View {
         this.lineNumberPanel = new LineNumberPanel();
         this.textEditor = new TextEditor(this.memoryModel, this.lineNumberPanel);
         this.registerPanel = new RegisterPanel(this.memoryModel);
+        this.terminalPanel = new TerminalPanel();
+        this.ioTerminal = new IOTerminal(this.memoryModel);
+
         this.memoryModel.addObserver(this.registerPanel);
 
-        this.compiler = new Compiler(this.memoryModel, this.textEditor);
-        this.program = new Program(this.memoryModel, this.compiler);
+        this.compiler = new Compiler(this.memoryModel, this.textEditor, this.terminalPanel, this.ioTerminal);
+        this.program = new Program(this.memoryModel, this.compiler, this.terminalPanel);
 
         BorderPane root = new BorderPane();
         root.setTop(this.createMenuBar());
 
         root.setCenter(this.createEditor());
         root.setLeft(this.registerPanel);
+        root.setBottom(this.terminalPanel);
+        root.setRight(this.ioTerminal);
 
         Scene scene = new Scene(root);
         this.stage.setScene(scene);
@@ -82,6 +89,10 @@ public class View {
         menuItem.setOnAction(this.program);
         menu.getItems().add(menuItem);
 
+        menuItem = new MenuItem("Step");
+        menuItem.setOnAction(this.program);
+        menu.getItems().add(menuItem);
+
         menuBar.getMenus().add(menu);
 
         return menuBar;
@@ -94,6 +105,7 @@ public class View {
         editor.setPadding(Insets.EMPTY);
         editor.setLeft(this.lineNumberPanel);
         editor.setCenter(this.textEditor);
+        editor.setBottom(this.terminalPanel);
         return editor;
     }
 }
