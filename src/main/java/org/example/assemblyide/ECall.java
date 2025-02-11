@@ -28,14 +28,14 @@ public class ECall implements Instruction {
             case 4:
                 this.terminal.printString();
                 break;
-            case 5:
-                this.terminal.readInteger();
-                break;
-            case 8:
-                this.terminal.readString();
+            case 5, 8, 12:
+                this.terminal.startReading();
                 break;
             case 10:
                 this.memoryModel.exit();
+                break;
+            case 11:
+                this.terminal.printCharacter();
                 break;
             default:
                 this.error = "Invalid syscall input: " + a7;
@@ -47,6 +47,6 @@ public class ECall implements Instruction {
 
     @Override
     public String getInstructionInfo() {
-        return "Line " + this.lineNum + ": ecall";
+        return "Line " + this.lineNum + ": ecall " + this.memoryModel.getRegisterValue(17);
     }
 }

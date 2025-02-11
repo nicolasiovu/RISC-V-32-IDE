@@ -43,6 +43,7 @@ public class View {
 
         this.compiler = new Compiler(this.memoryModel, this.textEditor, this.terminalPanel, this.ioTerminal);
         this.program = new Program(this.memoryModel, this.compiler, this.terminalPanel);
+        this.ioTerminal.setProgram(this.program);
 
         BorderPane root = new BorderPane();
         root.setTop(this.createMenuBar());
