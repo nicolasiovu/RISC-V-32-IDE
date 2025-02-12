@@ -2,6 +2,7 @@ package org.example.assemblyide;
 
 import javafx.event.EventHandler;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -9,40 +10,11 @@ public class IOTerminal extends TextArea{
 
     private MemoryModel memoryModel;
     private Program program;
-    private String collectedInput;
 
-    private final EventHandler<KeyEvent> keyHandler = event -> {
-        String c = event.getCharacter();
-        this.collectedInput += c;
-        if (c.equals("\n") || c.equals("\r") || c.equals("\r\n")) {
-            this.collectedInput = this.collectedInput.substring(0, this.collectedInput.length() - 1);
-            switch (this.memoryModel.getRegisterValue(17)) {
-                case 5:
-                    this.readInteger();
-                    break;
-                case 8:
-                    this.readString();
-                    break;
-                case 12:
-                    this.readCharacter();
-                    break;
-                default:
-                    break;
-            }
-            this.stopReading();
-        }
-    };
-
-    private final EventHandler<KeyEvent> deleteHandler = event -> {
-        if (event.getCode() == KeyCode.BACK_SPACE && !this.collectedInput.isEmpty()) {
-            this.collectedInput = this.collectedInput.substring(0, this.collectedInput.length() - 1);
-            event.consume();
-        }
-    };
+    private int inputStartPos;
 
     public IOTerminal(MemoryModel memoryModel) {
         this.memoryModel = memoryModel;
-        this.collectedInput = "";
 
         this.minWidth(200);
         this.setEditable(false);
@@ -66,8 +38,26 @@ public class IOTerminal extends TextArea{
         String css = getClass().getResource("/scrollbar.css").toExternalForm();
         this.getStylesheets().add(css);
 
-        this.textProperty().addListener((observable, oldValue, newValue) -> {
-            this.positionCaret(newValue.length());
+        this.setTextFormatter(new TextFormatter<>(change -> {
+            int start = change.getRangeStart();
+            int end = change.getRangeEnd();
+
+            if (start < this.inputStartPos || end < this.inputStartPos) {
+                return null;
+            }
+            return change;
+        }));
+
+        this.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            if (this.isEditable() && newPos.intValue() < this.inputStartPos) {
+                this.positionCaret(inputStartPos);
+            }
+        });
+
+        this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (this.isEditable() && event.getCode() == KeyCode.ENTER) {
+                this.stopReading();
+            }
         });
     }
 
@@ -96,34 +86,54 @@ public class IOTerminal extends TextArea{
     }
 
     public void startReading() {
+        this.inputStartPos = this.getLength();
         this.setEditable(true);
-        this.addEventHandler(KeyEvent.KEY_TYPED, keyHandler);
-        this.addEventHandler(KeyEvent.KEY_PRESSED, deleteHandler);
+        if (this.getLength() != 0) {
+            this.appendText("\n");
+        }
+        this.positionCaret(this.inputStartPos);
     }
 
     private void stopReading() {
         this.setEditable(false);
-        this.removeEventHandler(KeyEvent.KEY_TYPED, keyHandler);
-        this.removeEventHandler(KeyEvent.KEY_PRESSED, deleteHandler);
+        int a7 = this.memoryModel.getRegisterValue(17);
+        this.appendText("\n");
+        switch (a7) {
+            case 5:
+                this.readInteger();
+                break;
+            case 8:
+                this.readString();
+                break;
+            case 12:
+                this.readCharacter();
+                break;
+            default:
+                break;
+        }
         this.program.allowRunning();
     }
 
     private void readInteger() {
         try {
-            int input = Integer.parseInt(this.collectedInput);
-            this.memoryModel.updateRegister(10, input);
+            String input = this.getText(this.inputStartPos, this.getLength()).trim();
+            System.out.println(input);
+            int num = Integer.parseInt(input);
+            this.memoryModel.updateRegister(10, num);
         } catch (NumberFormatException _) {}
     }
 
     private void readCharacter() {
-        char c = this.collectedInput.toCharArray()[0];
+        String input = this.getText(this.inputStartPos, this.getLength()).trim();
+        char c = input.toCharArray()[0];
         this.memoryModel.updateRegister(10, c);
     }
 
     private void readString() {
+        String input = this.getText(this.inputStartPos, this.getLength()).trim();
         int address = this.memoryModel.getRegisterValue(10);
         int numToRead = this.memoryModel.getRegisterValue(11) - 1;
-        for (char c: this.collectedInput.toCharArray()) {
+        for (char c: input.toCharArray()) {
             if (numToRead <= 0) {
                 break;
             }

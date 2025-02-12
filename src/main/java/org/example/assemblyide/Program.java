@@ -79,7 +79,7 @@ public class Program implements EventHandler<ActionEvent> {
         ArrayList<Instruction> instructions = this.compiler.getInstructions();
         int pc = this.memoryModel.getPc();
         if (pc / 4 >= instructions.size()) {
-            this.error = "No instruction at pc=" + pc;
+            this.error = "No instruction at pc=" + String.format("%08X", pc);
             return false;
         }
         Instruction instruction = instructions.get(pc / 4);
@@ -104,9 +104,13 @@ public class Program implements EventHandler<ActionEvent> {
     public void allowRunning() {
         this.awaitingInput = false;
         if (this.lastAction == 0) {
-            this.run();
+            if (!this.run()) {
+                this.terminalPanel.print(this.error);
+            }
         } else {
-            this.step();
+            if (!this.step()) {
+                this.terminalPanel.print(this.error);
+            }
         }
     }
 
