@@ -4,7 +4,7 @@ CURRENT PROJECT STATUS:
 
 - Base set instructions ✅
 
-- ECalls ✅ (Nearly complete)
+- ECalls ✅
 
 - Step-through functionality ✅
 
@@ -14,11 +14,11 @@ CURRENT PROJECT STATUS:
 
 - Live register view with highlighting ✅
 
+ - .data section support ✅
+
 COMING SOON:
 
 - Live memory view panel
-
-- .data section support
 
 - Pseudoinstructions support
 
