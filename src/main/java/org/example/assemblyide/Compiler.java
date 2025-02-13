@@ -15,6 +15,21 @@ public class Compiler implements EventHandler<ActionEvent> {
     private ArrayList<Instruction> instructions;
     private String error;
     private boolean usesLabel;
+    private boolean inData;
+    private int staticAddressPtr;
+
+    private Pattern wordStatic = Pattern.compile("^([a-zA-Z_]+[a-zA-Z0-9_]*):\\.word(-?\\d+|0x[0-9a-fA-F]+)(,(-?\\d+|0x[0-9a-fA-F]+))*$");
+    private Pattern wordGrouper = Pattern.compile("(\\w+):\\.word(.+)");
+
+    private Pattern halfStatic = Pattern.compile("^([a-zA-Z_]+[a-zA-Z0-9_]*):\\.half(-?\\d+|0x[0-9a-fA-F]+)(,(-?\\d+|0x[0-9a-fA-F]+))*$");
+    private Pattern halfGrouper = Pattern.compile("(\\w+):\\.half(.+)");
+
+
+    private Pattern byteStatic = Pattern.compile("^([a-zA-Z_]+[a-zA-Z0-9_]*):\\.byte(-?\\d+|0x[0-9a-fA-F]+)(,(-?\\d+|0x[0-9a-fA-F]+))*$");
+    private Pattern byteGrouper = Pattern.compile("(\\w+):\\.byte(.+)");
+
+
+    private Pattern stringStatic = Pattern.compile("^\\s*([a-zA-Z_]+[a-zA-Z0-9_]*):\\s*(\\.asciz|\\.string)\\s*\"(.*)\"\\s*$");
 
     private Pattern ecall = Pattern.compile("^ecall$");
 
@@ -43,12 +58,16 @@ public class Compiler implements EventHandler<ActionEvent> {
         this.instructions = new ArrayList<>();
         this.error = "";
         this.usesLabel = false;
+        this.inData = false;
+        this.staticAddressPtr = 0x00000004;
     }
 
     public boolean compile() {
         this.instructions.clear();
         this.memoryModel.resetLabels();
+        this.staticAddressPtr = 0x00000004;
         this.setLabels();
+        this.inData = false;
         this.usesLabel = false;
         InstructionFactory instructionFactory = new InstructionFactory(this.memoryModel, this, io);
         int lineNumber = 0;
@@ -59,12 +78,27 @@ public class Compiler implements EventHandler<ActionEvent> {
             this.usesLabel = false;
             String inputLine = line;
             line = line.trim();
+            if (line.equals(".data")) {
+                this.inData = true;
+                continue;
+            }
+            if (line.equals(".text")) {
+                this.inData = false;
+                continue;
+            }
             if (label.matcher(line).matches()) {
                 continue;
             }
             String originalLine = line;
             if (line.isEmpty()) { continue; }
-            m = this.decodeLine(line);
+            if (this.inData) {
+                if (!this.handleStaticVariable(originalLine)) {
+                    this.error = "Line " + lineNumber + ": '" + originalLine + "' Invalid variable declaration.";
+                    return false;
+                }
+                continue;
+            }
+            m = this.decodeInstruction(line);
             line = line.trim();
             String instruction = line.split(" ")[0];
             if (m == null) {
@@ -87,7 +121,7 @@ public class Compiler implements EventHandler<ActionEvent> {
         return true;
     }
 
-    private Matcher decodeLine(String line) {
+    private Matcher decodeInstruction(String line) {
         Matcher m;
         line = line.trim();
         String instruction = line.split(" ")[0];
@@ -133,17 +167,142 @@ public class Compiler implements EventHandler<ActionEvent> {
         return m;
     }
 
+    private boolean handleStaticVariable(String line) {
+        line = line.trim();
+        Matcher m = stringStatic.matcher(line);
+        if (m.matches()) {
+            String name = m.group(1);
+            this.memoryModel.addVariable(name, this.staticAddressPtr);
+            String value = this.fixEscapeCharacters(m.group(3));
+            for (char c: value.toCharArray()) {
+                this.memoryModel.writeByte(this.staticAddressPtr, (byte) c);
+                this.staticAddressPtr++;
+            }
+            this.memoryModel.writeByte(this.staticAddressPtr, (byte) '\0');
+            this.staticAddressPtr++;
+            return true;
+        }
+        line = line.replaceAll("\\s+", "");
+        m = wordStatic.matcher(line);
+        Matcher groups = wordGrouper.matcher(line);
+        if (m.matches() && groups.matches()) {
+            String name = groups.group(1);
+            this.memoryModel.addVariable(name, this.staticAddressPtr);
+            String[] inputs = groups.group(2).split(",");
+            for (String input: inputs) {
+                int value;
+                if (input.contains("x")) {
+                    value = Integer.parseInt(input, 16);
+                } else {
+                    value = Integer.parseInt(input);
+                }
+                this.memoryModel.writeWord(this.staticAddressPtr, value);
+                this.staticAddressPtr += 4;
+            }
+            return true;
+        }
+        m = halfStatic.matcher(line);
+        groups = halfGrouper.matcher(line);
+        if (m.matches() && groups.matches()) {
+            String name = groups.group(1);
+            this.memoryModel.addVariable(name, this.staticAddressPtr);
+            String[] inputs = groups.group(2).split(",");
+            for (String input: inputs) {
+                int value;
+                if (input.contains("x")) {
+                    value = Integer.parseInt(input, 16);
+                } else {
+                    value = Integer.parseInt(input);
+                }
+                short val = (short) (value & 0xFFFF);
+                this.memoryModel.writeByte(this.staticAddressPtr, (byte) (val & 0xFF));
+                this.memoryModel.writeByte(this.staticAddressPtr + 1, (byte) ((val >> 8) & 0xFF));
+                this.staticAddressPtr += 2;
+            }
+            return true;
+        }
+        m = byteStatic.matcher(line);
+        groups = byteGrouper.matcher(line);
+        if (m.matches() && groups.matches()) {
+            String name = groups.group(1);
+            this.memoryModel.addVariable(name, this.staticAddressPtr);
+            String[] inputs = groups.group(2).split(",");
+            for (String input: inputs) {
+                int value;
+                if (input.contains("x")) {
+                    value = Integer.parseInt(input, 16);
+                } else {
+                    value = Integer.parseInt(input);
+                }
+                this.memoryModel.writeByte(this.staticAddressPtr, (byte) (value & 0xFF));
+                this.staticAddressPtr++;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private String fixEscapeCharacters(String input) {
+        StringBuilder sb = new StringBuilder();
+        int length = input.length();
+        for (int i = 0; i < length; i++) {
+            char c = input.charAt(i);
+            if (c == '\\' && i + 1 < length) {
+                char next = input.charAt(i + 1);
+                switch (next) {
+                    case 'n':
+                        sb.append('\n');
+                        i++;
+                        break;
+                    case 't':
+                        sb.append('\t');
+                        i++;
+                        break;
+                    case 'r':
+                        sb.append('\r');
+                        i++;
+                        break;
+                    case '\\':
+                        sb.append('\\');
+                        i++;
+                        break;
+                    case '"':
+                        sb.append('"');
+                        i++;
+                        break;
+                    default:
+                        sb.append(c);
+                        break;
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
     public void setLabels() {
         String[] lines = this.textEditor.getText().split("\n");
         int numInstructions = 0;
+        this.inData = false;
         for (String line: lines) {
             String potentialLabel = line.trim();
-            if (label.matcher(potentialLabel).matches()) {
-                this.memoryModel.addLabel(potentialLabel.replace(":", ""), numInstructions);
+            if (line.equals(".data")) {
+                this.inData = true;
+                continue;
             }
-            Matcher m = this.decodeLine(line);
-            if (m != null && m.matches()) {
-                numInstructions++;
+            if (line.equals(".text")) {
+                this.inData = false;
+                continue;
+            }
+            if (!inData) {
+                if (label.matcher(potentialLabel).matches()) {
+                    this.memoryModel.addLabel(potentialLabel.replace(":", ""), numInstructions);
+                }
+                Matcher m = this.decodeInstruction(line);
+                if (m != null && m.matches()) {
+                    numInstructions++;
+                }
             }
         }
     }

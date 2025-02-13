@@ -11,6 +11,7 @@ public class MemoryModel extends Observable {
     private HashMap<Integer, Integer> registers;
     private HashMap<Integer, byte[]> memory;
     private HashMap<String, Integer> labels;
+    private HashMap<String, Integer> variables;
 
     private boolean exit;
 
@@ -22,6 +23,7 @@ public class MemoryModel extends Observable {
         }
         this.memory = new HashMap<>();
         this.labels = new HashMap<>();
+        this.variables = new HashMap<>();
         this.exit = false;
     }
 
@@ -72,8 +74,16 @@ public class MemoryModel extends Observable {
         this.labels.put(label, index);
     }
 
+    public void addVariable(String variable, int address) {
+        this.variables.put(variable, address);
+    }
+
     public int lookupLabel(String label) {
         return this.labels.get(label);
+    }
+
+    public int lookupVariable(String variable) {
+        return this.variables.get(variable);
     }
 
     public void resetLabels() {
