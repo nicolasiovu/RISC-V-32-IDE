@@ -42,6 +42,10 @@ public class InstructionFactory {
                 imm = Integer.parseInt(m.group(3));
                 rs1 = this.getRegister(m.group(4));
                 return new STypeInstruction(memoryModel, instructionType, rs1, rs2, imm, lineNum, inputLine);
+            case "lui", "auipc":
+                rd = this.getRegister(m.group(2));
+                imm = Integer.parseInt(m.group(3));
+                return new UTypeInstruction(memoryModel, instructionType, rd, imm, lineNum, inputLine);
             case "beq", "bne", "blt", "bge", "bltu", "bgeu":
                 rs1 = this.getRegister(m.group(2));
                 rs2 = this.getRegister(m.group(3));
