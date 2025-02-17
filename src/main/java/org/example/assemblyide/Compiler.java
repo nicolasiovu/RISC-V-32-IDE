@@ -35,7 +35,7 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Pattern label = Pattern.compile("^[a-zA-Z_]+[a-zA-Z0-9_]*:$");
 
-    private Pattern rType = Pattern.compile("^(add|sub|xor|or|and|sll|srl|sra|slt|sltu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
+    private Pattern rType = Pattern.compile("^(add|sub|xor|or|and|sll|srl|sra|slt|sltu|mul|mulh|mulhsu|mulhu|div|divu|rem|remu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
 
     private Pattern iType = Pattern.compile("^(addi|xori|ori|andi|slli|srli|srai|slti|sltiu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
 
@@ -51,6 +51,8 @@ public class Compiler implements EventHandler<ActionEvent> {
     private Pattern jalr = Pattern.compile("^jalr(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
 
     private Pattern uType = Pattern.compile("^(lui|auipc)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
+
+    private Pattern la = Pattern.compile("^la(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
 
     public Compiler(MemoryModel memoryModel, TextEditor textEditor, TerminalPanel terminalPanel, IOTerminal io) {
         this.memoryModel = memoryModel;
@@ -132,7 +134,7 @@ public class Compiler implements EventHandler<ActionEvent> {
             case "ecall":
                 m = ecall.matcher(line);
                 break;
-            case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu":
+            case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu", "mul", "mulh", "mulhsu", "mulhu", "div", "divu", "rem", "remu":
                 m = rType.matcher(line);
                 break;
             case "addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu":

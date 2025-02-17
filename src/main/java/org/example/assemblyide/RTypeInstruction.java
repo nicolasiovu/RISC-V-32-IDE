@@ -32,18 +32,82 @@ public class RTypeInstruction implements Instruction {
         int rs1Val = this.memoryModel.getRegisterValue(this.rs1);
         int rs2Val = this.memoryModel.getRegisterValue(this.rs2);
         try {
-            int rdVal = switch (this.name) {
-                case "add" -> rs1Val + rs2Val;
-                case "sub" -> rs1Val - rs2Val;
-                case "xor" -> rs1Val ^ rs2Val;
-                case "or" -> rs1Val | rs2Val;
-                case "and" -> rs1Val & rs2Val;
-                case "sll" -> rs1Val << rs2Val;
-                case "srl" -> rs1Val >>> rs2Val;
-                case "sra" -> rs1Val >> rs2Val;
-                case "slt" -> (rs1Val < rs2Val) ? 1 : 0;
-                case "sltu" -> (Integer.compareUnsigned(rs1Val, rs2Val) < 0) ? 1 : 0;
-                default -> throw new IllegalArgumentException("Unknown instruction");
+            int rdVal;
+            switch (this.name) {
+                case "add":
+                    rdVal = rs1Val + rs2Val;
+                    break;
+                case "sub":
+                    rdVal = rs1Val - rs2Val;
+                    break;
+                case "xor":
+                    rdVal = rs1Val ^ rs2Val;
+                    break;
+                case "or":
+                    rdVal = rs1Val | rs2Val;
+                    break;
+                case "and":
+                    rdVal = rs1Val & rs2Val;
+                    break;
+                case "sll":
+                    rdVal = rs1Val << rs2Val;
+                    break;
+                case "srl":
+                    rdVal = rs1Val >>> rs2Val;
+                    break;
+                case "sra":
+                    rdVal = rs1Val >> rs2Val;
+                    break;
+                case "slt":
+                    rdVal = (rs1Val < rs2Val) ? 1 : 0;
+                    break;
+                case "sltu":
+                    rdVal = (Integer.compareUnsigned(rs1Val, rs2Val) < 0) ? 1 : 0;
+                    break;
+                case "mul":
+                    rdVal = rs1Val * rs2Val;
+                    break;
+                case "mulh":
+                    rdVal = (int) (((long) rs1Val * (long) rs2Val) >> 32);
+                    break;
+                case "mulhsu":
+                    long mulhsu = (long) rs1Val * Integer.toUnsignedLong(rs2Val);
+                    rdVal = (int) (mulhsu >> 32);
+                    break;
+                case "mulhu":
+                    long mulhu = Integer.toUnsignedLong(rs1Val) * Integer.toUnsignedLong(rs2Val);
+                    rdVal = (int) (mulhu >> 32);
+                    break;
+                case "div":
+                    if (rs2Val == 0) {
+                        rdVal = -1;
+                    } else {
+                        rdVal = (int) (rs1Val / rs2Val);
+                    }
+                    break;
+                case "divu":
+                    if (rs2Val == 0) {
+                        rdVal = -1;
+                    } else {
+                        rdVal = (int) (Integer.toUnsignedLong(rs1Val) / Integer.toUnsignedLong(rs2Val));
+                    }
+                    break;
+                case "rem":
+                    if (rs2Val == 0) {
+                        rdVal = rs1Val;
+                    } else {
+                        rdVal = rs1Val % rs2Val;
+                    }
+                    break;
+                case "remu":
+                    if (rs2Val == 0) {
+                        rdVal = rs1Val;
+                    } else {
+                        rdVal = (int) (Integer.toUnsignedLong(rs1Val) % Integer.toUnsignedLong(rs2Val));
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown instruction");
             };
             this.memoryModel.updateRegister(this.rd, rdVal);
             this.memoryModel.updatePc(4);

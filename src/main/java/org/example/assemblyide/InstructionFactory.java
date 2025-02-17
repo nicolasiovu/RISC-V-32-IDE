@@ -22,7 +22,7 @@ public class InstructionFactory {
         switch (instructionType) {
             case "ecall":
                 return new ECall(memoryModel, io, lineNum);
-            case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu":
+            case "add", "sub", "xor", "or", "and", "sll", "srl", "sra", "slt", "sltu", "mul", "mulh", "mulhsu", "mulhu", "div", "divu", "rem", "remu":
                 rd = this.getRegister(m.group(2));
                 rs1 = this.getRegister(m.group(3));
                 rs2 = this.getRegister(m.group(4));
