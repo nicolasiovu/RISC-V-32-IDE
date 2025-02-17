@@ -54,6 +54,10 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Pattern la = Pattern.compile("^la(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
 
+    private Pattern li = Pattern.compile("^li(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
+
+    private Pattern unary = Pattern.compile("^(mv|not|neg|negw|seqz|snez|sltz|sgtz)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
+
     public Compiler(MemoryModel memoryModel, TextEditor textEditor, TerminalPanel terminalPanel, IOTerminal io) {
         this.memoryModel = memoryModel;
         this.textEditor = textEditor;
@@ -167,6 +171,15 @@ public class Compiler implements EventHandler<ActionEvent> {
                 break;
             case "jalr":
                 m = jalr.matcher(line);
+                break;
+            case "la":
+                m = la.matcher(line);
+                break;
+            case "li":
+                m = li.matcher(line);
+                break;
+            case "mv", "not", "neg", "negw", "seqz", "snez", "sltz", "sgtz":
+                m = unary.matcher(line);
                 break;
             default:
                 return null;

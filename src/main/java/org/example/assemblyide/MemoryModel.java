@@ -82,7 +82,7 @@ public class MemoryModel extends Observable {
         return this.labels.get(label);
     }
 
-    public int lookupVariable(String variable) {
+    public Integer lookupVariable(String variable) {
         return this.variables.get(variable);
     }
 

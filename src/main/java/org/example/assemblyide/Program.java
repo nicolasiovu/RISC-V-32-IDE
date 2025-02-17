@@ -96,6 +96,7 @@ public class Program implements EventHandler<ActionEvent> {
         }
         if (this.memoryModel.exitCalled()) {
             this.memoryModel.resetExit();
+            this.terminalPanel.print("Exited due to syscall 10");
             return true;
         }
         return true;

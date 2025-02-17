@@ -117,7 +117,6 @@ public class IOTerminal extends TextArea{
     private void readInteger() {
         try {
             String input = this.getText(this.inputStartPos, this.getLength()).trim();
-            System.out.println(input);
             int num = Integer.parseInt(input);
             this.memoryModel.updateRegister(10, num);
         } catch (NumberFormatException _) {}

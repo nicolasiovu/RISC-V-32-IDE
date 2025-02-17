@@ -88,6 +88,22 @@ public class InstructionFactory {
                     return null;
                 }
                 return new JALRInstruction(memoryModel, rd, rs1, imm, lineNum, inputLine);
+            case "la":
+                rd = this.getRegister(m.group(1));
+                Integer address = this.memoryModel.lookupVariable(m.group(2));
+                if (address == null) {
+                    this.error = "Undefined reference to '" + m.group(2) + "'.";
+                    return null;
+                }
+                return new LAInstruction(memoryModel, rd, address, lineNum, inputLine);
+            case "li":
+                rd = this.getRegister(m.group(1));
+                imm = Integer.parseInt(m.group(2));
+                return new LIInstruction(memoryModel, rd, imm, lineNum, inputLine);
+            case "mv", "not", "neg", "negw", "seqz", "snez", "sltz", "sgtz":
+                rd = this.getRegister(m.group(2));
+                int rs = this.getRegister(m.group(3));
+                return new UnaryInstruction(memoryModel, instructionType, rd, rs, lineNum, inputLine);
             default:
                 return null;
         }
