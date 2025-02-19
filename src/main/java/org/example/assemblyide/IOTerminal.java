@@ -80,8 +80,8 @@ public class IOTerminal extends TextArea{
     }
 
     public void printCharacter() {
-        int address = this.memoryModel.getRegisterValue(10);
-        char c = (char) this.memoryModel.readByte(address);
+        int num = this.memoryModel.getRegisterValue(10);
+        char c = (char) num;
         this.appendText(Character.toString(c));
     }
 

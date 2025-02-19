@@ -30,27 +30,52 @@ public class InstructionFactory {
             case "addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu":
                 rd = this.getRegister(m.group(2));
                 rs1 = this.getRegister(m.group(3));
-                imm = Integer.parseInt(m.group(4));
+                if (m.group(4).contains("x")) {
+                    String hex = m.group(4).split("x")[1];
+                    imm = (int) Long.parseLong(hex, 16);
+                } else {
+                    imm = Integer.parseInt(m.group(4));
+                }
                 return new ITypeInstruction(memoryModel, instructionType, rd, rs1, imm, lineNum, inputLine);
             case "lb", "lh", "lw", "lbu", "lhu":
                 rd = this.getRegister(m.group(2));
-                imm = Integer.parseInt(m.group(3));
+                if (m.group(3).contains("x")) {
+                    String hex = m.group(3).split("x")[1];
+                    imm = (int) Long.parseLong(hex, 16);
+                } else {
+                    imm = Integer.parseInt(m.group(3));
+                }
                 rs1 = this.getRegister(m.group(4));
                 return new LoadInstruction(memoryModel, instructionType, rd, rs1, imm, lineNum, inputLine);
             case "sb", "sh", "sw":
                 rs2 = this.getRegister(m.group(2));
-                imm = Integer.parseInt(m.group(3));
+                if (m.group(3).contains("x")) {
+                    String hex = m.group(3).split("x")[1];
+                    imm = (int) Long.parseLong(hex, 16);
+                } else {
+                    imm = Integer.parseInt(m.group(3));
+                }
                 rs1 = this.getRegister(m.group(4));
                 return new STypeInstruction(memoryModel, instructionType, rs1, rs2, imm, lineNum, inputLine);
             case "lui", "auipc":
                 rd = this.getRegister(m.group(2));
-                imm = Integer.parseInt(m.group(3));
+                if (m.group(3).contains("x")) {
+                    String hex = m.group(3).split("x")[1];
+                    imm = (int) Long.parseLong(hex, 16);
+                } else {
+                    imm = Integer.parseInt(m.group(3));
+                }
                 return new UTypeInstruction(memoryModel, instructionType, rd, imm, lineNum, inputLine);
-            case "beq", "bne", "blt", "bge", "bltu", "bgeu":
+            case "beq", "bne", "blt", "bge", "bltu", "bgeu", "bgt", "ble", "bgtu", "bleu":
                 rs1 = this.getRegister(m.group(2));
                 rs2 = this.getRegister(m.group(3));
                 if (!usesLabel) {
-                    imm = Integer.parseInt(m.group(4));
+                    if (m.group(4).contains("x")) {
+                        String hex = m.group(4).split("x")[1];
+                        imm = (int) Long.parseLong(hex, 16);
+                    } else {
+                        imm = Integer.parseInt(m.group(4));
+                    }
                     if (imm < -2048 || imm > 2047) {
                         this.error = "Immediate value " + imm +  "exceeds branch range.";
                         return null;
@@ -64,15 +89,63 @@ public class InstructionFactory {
                 }
                 return new BTypeInstruction(memoryModel, instructionType, rs1, rs2, imm, lineNum, inputLine);
             case "jal":
-                rd = this.getRegister(m.group(1));
+                if (m.groupCount() == 1) {
+                    rd = 1;
+                    if (!usesLabel) {
+                        if (m.group(1).contains("x")) {
+                            String hex = m.group(1).split("x")[1];
+                            imm = (int) Long.parseLong(hex, 16);
+                        } else {
+                            imm = Integer.parseInt(m.group(1));
+                        }
+                        if (imm < -524288 || imm > 524287) {
+                            this.error = "Immediate value " + imm + "exceeds jal range.";
+                            return null;
+                        }
+                    } else {
+                        imm = this.getImmFromLabel(m.group(1));
+                        if (imm == -1) {
+                            this.error = "Undefined reference to '" + m.group(2) + "'.";
+                            return null;
+                        }
+                    }
+                } else {
+                    rd = this.getRegister(m.group(1));
+                    if (!usesLabel) {
+                        if (m.group(2).contains("x")) {
+                            String hex = m.group(2).split("x")[1];
+                            imm = (int) Long.parseLong(hex, 16);
+                        } else {
+                            imm = Integer.parseInt(m.group(2));
+                        }
+                        if (imm < -524288 || imm > 524287) {
+                            this.error = "Immediate value " + imm + "exceeds jal range.";
+                            return null;
+                        }
+                    } else {
+                        imm = this.getImmFromLabel(m.group(2));
+                        if (imm == -1) {
+                            this.error = "Undefined reference to '" + m.group(2) + "'.";
+                            return null;
+                        }
+                    }
+                }
+                return new JALInstruction(memoryModel, rd, imm, lineNum, inputLine);
+            case "j":
+                rd = 0;
                 if (!usesLabel) {
-                    imm = Integer.parseInt(m.group(2));
+                    if (m.group(1).contains("x")) {
+                        String hex = m.group(1).split("x")[1];
+                        imm = (int) Long.parseLong(hex, 16);
+                    } else {
+                        imm = Integer.parseInt(m.group(1));
+                    }
                     if (imm < -524288 || imm > 524287) {
                         this.error = "Immediate value " + imm + "exceeds jal range.";
                         return null;
                     }
                 } else {
-                    imm = this.getImmFromLabel(m.group(2));
+                    imm = this.getImmFromLabel(m.group(1));
                     if (imm == -1) {
                         this.error = "Undefined reference to '" + m.group(2) + "'.";
                         return null;
@@ -81,7 +154,12 @@ public class InstructionFactory {
                 return new JALInstruction(memoryModel, rd, imm, lineNum, inputLine);
             case "jalr":
                 rd = this.getRegister(m.group(1));
-                imm = Integer.parseInt(m.group(2));
+                if (m.group(2).contains("x")) {
+                    String hex = m.group(2).split("x")[1];
+                    imm = (int) Long.parseLong(hex, 16);
+                } else {
+                    imm = Integer.parseInt(m.group(2));
+                }
                 rs1 = this.getRegister(m.group(3));
                 if (imm < -2048 || imm > 2047) {
                     this.error = "Immediate value " + imm +  "exceeds jalr range.";
@@ -98,12 +176,22 @@ public class InstructionFactory {
                 return new LAInstruction(memoryModel, rd, address, lineNum, inputLine);
             case "li":
                 rd = this.getRegister(m.group(1));
-                imm = Integer.parseInt(m.group(2));
+                if (m.group(2).contains("x")) {
+                    String hex = m.group(2).split("x")[1];
+                    imm = (int) Long.parseLong(hex, 16);
+                } else {
+                    imm = Integer.parseInt(m.group(2));
+                }
                 return new LIInstruction(memoryModel, rd, imm, lineNum, inputLine);
             case "mv", "not", "neg", "negw", "seqz", "snez", "sltz", "sgtz":
                 rd = this.getRegister(m.group(2));
                 int rs = this.getRegister(m.group(3));
                 return new UnaryInstruction(memoryModel, instructionType, rd, rs, lineNum, inputLine);
+            case "ret":
+                rd = 0;
+                imm = 0;
+                rs1 = 1;
+                return new JALRInstruction(memoryModel, rd, rs1, imm, lineNum, inputLine);
             default:
                 return null;
         }

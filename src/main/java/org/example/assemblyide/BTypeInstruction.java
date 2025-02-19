@@ -95,6 +95,46 @@ public class BTypeInstruction implements Instruction {
                         this.memoryModel.updatePc(4);
                     }
                     break;
+                case "bgt":
+                    if (rs1Val > rs2Val) {
+                        if (!this.memoryModel.updatePc(immBytes)) {
+                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
+                            return false;
+                        }
+                    } else {
+                        this.memoryModel.updatePc(4);
+                    }
+                    break;
+                case "ble":
+                    if (rs1Val <= rs2Val) {
+                        if (!this.memoryModel.updatePc(immBytes)) {
+                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
+                            return false;
+                        }
+                    } else {
+                        this.memoryModel.updatePc(4);
+                    }
+                    break;
+                case "bgtu":
+                    if (Integer.compareUnsigned(rs1Val, rs2Val) > 0) {
+                        if (!this.memoryModel.updatePc(immBytes)) {
+                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
+                            return false;
+                        }
+                    } else {
+                        this.memoryModel.updatePc(4);
+                    }
+                    break;
+                case "bleu":
+                    if (Integer.compareUnsigned(rs1Val, rs2Val) <= 0) {
+                        if (!this.memoryModel.updatePc(immBytes)) {
+                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
+                            return false;
+                        }
+                    } else {
+                        this.memoryModel.updatePc(4);
+                    }
+                    break;
                 default:
                     throw new IllegalArgumentException("Unknown instruction");
             }

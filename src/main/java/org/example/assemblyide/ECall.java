@@ -37,6 +37,10 @@ public class ECall implements Instruction {
             case 11:
                 this.terminal.printCharacter();
                 break;
+            case 30:
+                int currentTime = (int) System.currentTimeMillis();
+                this.memoryModel.updateRegister(10, currentTime);
+                break;
             default:
                 this.error = "Invalid syscall input: " + a7;
                 return false;

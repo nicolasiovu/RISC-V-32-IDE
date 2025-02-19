@@ -43,11 +43,13 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Pattern storeType = Pattern.compile("^(sb|sh|sw)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
 
-    private Pattern bTypeImm = Pattern.compile("^(beq|bne|blt|bge|bltu|bgeu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
-    private Pattern bTypeLabel = Pattern.compile("^(beq|bne|blt|bge|bltu|bgeu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern bTypeImm = Pattern.compile("^(beq|bne|blt|bge|bltu|bgeu|bgt|ble|bgtu|bleu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
+    private Pattern bTypeLabel = Pattern.compile("^(beq|bne|blt|bge|bltu|bgeu|bgt|ble|bgtu|bleu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
 
     private Pattern jalImm = Pattern.compile("^jal(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
+    private Pattern jalShortImm = Pattern.compile("^jal(-?\\d+|0x[0-9a-fA-F]+)$");
     private Pattern jalLabel = Pattern.compile("^jal(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern jalShortLabel = Pattern.compile("^jal([a-zA-Z_]+[a-zA-Z0-9_]*)$");
     private Pattern jalr = Pattern.compile("^jalr(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
 
     private Pattern uType = Pattern.compile("^(lui|auipc)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
@@ -57,6 +59,10 @@ public class Compiler implements EventHandler<ActionEvent> {
     private Pattern li = Pattern.compile("^li(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
 
     private Pattern unary = Pattern.compile("^(mv|not|neg|negw|seqz|snez|sltz|sgtz)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
+
+    private Pattern jImm = Pattern.compile("^j(-?\\d+|0x[0-9a-fA-F]+)$");
+    private Pattern jLabel = Pattern.compile("^j([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+    private Pattern ret = Pattern.compile("^ret$");
 
     public Compiler(MemoryModel memoryModel, TextEditor textEditor, TerminalPanel terminalPanel, IOTerminal io) {
         this.memoryModel = memoryModel;
@@ -86,6 +92,7 @@ public class Compiler implements EventHandler<ActionEvent> {
             this.usesLabel = false;
             String inputLine = line;
             line = line.trim();
+            if (line.startsWith("#") || line.split("#").length == 0) continue;
             if (line.equals(".data")) {
                 this.inData = true;
                 continue;
@@ -131,6 +138,7 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Matcher decodeInstruction(String line) {
         Matcher m;
+        line = line.split("#")[0];
         line = line.trim();
         String instruction = line.split(" ")[0];
         line = line.replaceAll("\\s+", "");
@@ -153,7 +161,7 @@ public class Compiler implements EventHandler<ActionEvent> {
             case "lui", "auipc":
                 m = uType.matcher(line);
                 break;
-            case "beq", "bne", "blt", "bge", "bltu", "bgeu":
+            case "beq", "bne", "blt", "bge", "bltu", "bgeu", "bgt", "ble", "bgtu", "bleu":
                 if (bTypeLabel.matcher(line).matches()) {
                     m = bTypeLabel.matcher(line);
                     this.usesLabel = true;
@@ -165,8 +173,21 @@ public class Compiler implements EventHandler<ActionEvent> {
                 if (jalLabel.matcher(line).matches()) {
                     m = jalLabel.matcher(line);
                     this.usesLabel = true;
+                } else if (jalShortLabel.matcher(line).matches()) {
+                    m = jalShortLabel.matcher(line);
+                    this.usesLabel = true;
+                } else if (jalShortImm.matcher(line).matches()) {
+                    m = jalShortImm.matcher(line);
                 } else {
                     m = jalImm.matcher(line);
+                }
+                break;
+            case "j":
+                if (jLabel.matcher(line).matches()) {
+                    m = jLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = jImm.matcher(line);
                 }
                 break;
             case "jalr":
@@ -180,6 +201,9 @@ public class Compiler implements EventHandler<ActionEvent> {
                 break;
             case "mv", "not", "neg", "negw", "seqz", "snez", "sltz", "sgtz":
                 m = unary.matcher(line);
+                break;
+            case "ret":
+                m = ret.matcher(line);
                 break;
             default:
                 return null;
@@ -315,6 +339,7 @@ public class Compiler implements EventHandler<ActionEvent> {
                 this.inData = false;
                 continue;
             }
+            if (line.startsWith("#") || line.split("#").length == 0) continue;
             if (!inData) {
                 if (label.matcher(potentialLabel).matches()) {
                     this.memoryModel.addLabel(potentialLabel.replace(":", ""), numInstructions);
