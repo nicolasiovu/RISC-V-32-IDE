@@ -16,11 +16,10 @@ CURRENT PROJECT STATUS:
 
  - .data section support ✅
 
+ - Pseudoinstructions support (almost all, more coming soon!)
+
 COMING SOON:
 
 - Live memory view panel
 
-- Pseudoinstructions support
-
-
-
+- Upgraded visual features
