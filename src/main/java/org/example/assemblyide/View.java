@@ -22,6 +22,8 @@ public class View {
     private TerminalPanel terminalPanel;
     private IOTerminal ioTerminal;
 
+    private FileHandler fileHandler;
+
     private Compiler compiler;
     private Program program;
 
@@ -44,6 +46,8 @@ public class View {
         this.compiler = new Compiler(this.memoryModel, this.textEditor, this.terminalPanel, this.ioTerminal);
         this.program = new Program(this.memoryModel, this.compiler, this.terminalPanel);
         this.ioTerminal.setProgram(this.program);
+
+        this.fileHandler = new FileHandler(this.textEditor, this.terminalPanel, this.stage);
 
         BorderPane root = new BorderPane();
         root.setTop(this.createMenuBar());
@@ -71,11 +75,11 @@ public class View {
         menu.getItems().add(menuItem);
 
         menuItem = new MenuItem("Open");
-        menuItem.setOnAction((ActionEvent event) -> {});
+        menuItem.setOnAction(this.fileHandler);
         menu.getItems().add(menuItem);
 
         menuItem = new MenuItem("Save");
-        menuItem.setOnAction((ActionEvent event) -> {});
+        menuItem.setOnAction(this.fileHandler);
         menu.getItems().add(menuItem);
 
         menuBar.getMenus().add(menu);

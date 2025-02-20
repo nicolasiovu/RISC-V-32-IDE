@@ -26,7 +26,7 @@ public class RegisterPanel extends GridPane implements Observer {
         programCounter.setText("pc");
         this.add(programCounter, 0, 0);
 
-        this.pc.setStyle("-fx-text-fill: #7a7979;" +
+        this.pc.setStyle("-fx-text-fill: #cfcfcf;" +
                 "-fx-font-family: 'Consolas';" +
                 "-fx-font-size: 12px;");
         this.pc.setText("00000000");
@@ -44,7 +44,7 @@ public class RegisterPanel extends GridPane implements Observer {
             this.add(registerName, 0, i + 1);
 
             Label registerValue = new Label();
-            registerValue.setStyle("-fx-text-fill: #7a7979;" +
+            registerValue.setStyle("-fx-text-fill: #cfcfcf;" +
                     "-fx-font-family: 'Consolas';" +
                     "-fx-font-size: 12px;");
             registerValue.setText("00000000");
@@ -73,7 +73,7 @@ public class RegisterPanel extends GridPane implements Observer {
                     "-fx-font-size: 12px;" +
                     "-fx-background-color: rgba(255,0,0,0.85);");
             if (this.recentRegister != null) {
-                this.recentRegister.setStyle("-fx-text-fill: #7a7979;" +
+                this.recentRegister.setStyle("-fx-text-fill: #cfcfcf;" +
                         "-fx-font-family: 'Consolas';" +
                         "-fx-font-size: 12px;");
             }

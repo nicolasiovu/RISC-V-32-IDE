@@ -1,22 +1,20 @@
 package org.example.assemblyide;
 
-public class BTypeInstruction implements Instruction {
+public class BTypePseudoInstruction implements Instruction {
     private MemoryModel memoryModel;
 
     private String name;
     private String error;
-    private int rs1;
-    private int rs2;
+    private int rs;
     private int imm;
     private int lineNum;
     private String line;
 
-    public BTypeInstruction(MemoryModel memoryModel, String name, int rs1, int rs2, int imm, int lineNum, String line) {
+    public BTypePseudoInstruction(MemoryModel memoryModel, String name, int rs, int imm, int lineNum, String line) {
         this.memoryModel = memoryModel;
         this.name = name;
         this.error = "";
-        this.rs1 = rs1;
-        this.rs2 = rs2;
+        this.rs = rs;
         this.imm = imm;
         this.lineNum = lineNum;
         this.line = line;
@@ -29,13 +27,12 @@ public class BTypeInstruction implements Instruction {
 
     @Override
     public boolean execute() {
-        int rs1Val = this.memoryModel.getRegisterValue(this.rs1);
-        int rs2Val = this.memoryModel.getRegisterValue(this.rs2);
+        int rsVal = this.memoryModel.getRegisterValue(this.rs);
         int immBytes = this.imm << 1;
         try {
             switch (this.name) {
-                case "beq":
-                    if (rs1Val == rs2Val) {
+                case "beqz":
+                    if (rsVal == 0) {
                         if (!this.memoryModel.updatePc(immBytes)) {
                             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
                             return false;
@@ -44,8 +41,8 @@ public class BTypeInstruction implements Instruction {
                         this.memoryModel.updatePc(4);
                     }
                     break;
-                case "bne":
-                    if (rs1Val != rs2Val) {
+                case "bnez":
+                    if (rsVal != 0) {
                         if (!this.memoryModel.updatePc(immBytes)) {
                             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
                             return false;
@@ -54,8 +51,8 @@ public class BTypeInstruction implements Instruction {
                         this.memoryModel.updatePc(4);
                     }
                     break;
-                case "blt":
-                    if (rs1Val < rs2Val) {
+                case "blez":
+                    if (rsVal <= 0) {
                         if (!this.memoryModel.updatePc(immBytes)) {
                             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
                             return false;
@@ -64,8 +61,8 @@ public class BTypeInstruction implements Instruction {
                         this.memoryModel.updatePc(4);
                     }
                     break;
-                case "bge":
-                    if (rs1Val >= rs2Val) {
+                case "bgez":
+                    if (rsVal >= 0) {
                         if (!this.memoryModel.updatePc(immBytes)) {
                             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
                             return false;
@@ -74,8 +71,8 @@ public class BTypeInstruction implements Instruction {
                         this.memoryModel.updatePc(4);
                     }
                     break;
-                case "bltu":
-                    if (Integer.compareUnsigned(rs1Val, rs2Val) < 0) {
+                case "bltz":
+                    if (rsVal < 0) {
                         if (!this.memoryModel.updatePc(immBytes)) {
                             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
                             return false;
@@ -84,48 +81,8 @@ public class BTypeInstruction implements Instruction {
                         this.memoryModel.updatePc(4);
                     }
                     break;
-                case "bgeu":
-                    if (Integer.compareUnsigned(rs1Val, rs2Val) >= 0) {
-                        if (!this.memoryModel.updatePc(immBytes)) {
-                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
-                            return false;
-                        }
-                    } else {
-                        this.memoryModel.updatePc(4);
-                    }
-                    break;
-                case "bgt":
-                    if (rs1Val > rs2Val) {
-                        if (!this.memoryModel.updatePc(immBytes)) {
-                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
-                            return false;
-                        }
-                    } else {
-                        this.memoryModel.updatePc(4);
-                    }
-                    break;
-                case "ble":
-                    if (rs1Val <= rs2Val) {
-                        if (!this.memoryModel.updatePc(immBytes)) {
-                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
-                            return false;
-                        }
-                    } else {
-                        this.memoryModel.updatePc(4);
-                    }
-                    break;
-                case "bgtu":
-                    if (Integer.compareUnsigned(rs1Val, rs2Val) > 0) {
-                        if (!this.memoryModel.updatePc(immBytes)) {
-                            this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
-                            return false;
-                        }
-                    } else {
-                        this.memoryModel.updatePc(4);
-                    }
-                    break;
-                case "bleu":
-                    if (Integer.compareUnsigned(rs1Val, rs2Val) <= 0) {
+                case "bgtz":
+                    if (rsVal > 0) {
                         if (!this.memoryModel.updatePc(immBytes)) {
                             this.error = "pc = " + this.memoryModel.getPc() + immBytes + " is invalid.";
                             return false;

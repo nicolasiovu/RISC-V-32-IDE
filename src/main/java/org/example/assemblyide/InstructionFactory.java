@@ -88,6 +88,27 @@ public class InstructionFactory {
                     }
                 }
                 return new BTypeInstruction(memoryModel, instructionType, rs1, rs2, imm, lineNum, inputLine);
+            case "beqz", "bnez", "blez", "bgez", "bltz", "bgtz":
+                int rsB = this.getRegister(m.group(2));
+                if (!usesLabel) {
+                    if (m.group(3).contains("x")) {
+                        String hex = m.group(3).split("x")[1];
+                        imm = (int) Long.parseLong(hex, 16);
+                    } else {
+                        imm = Integer.parseInt(m.group(3));
+                    }
+                    if (imm < -2048 || imm > 2047) {
+                        this.error = "Immediate value " + imm +  "exceeds branch range.";
+                        return null;
+                    }
+                } else {
+                    imm = this.getImmFromLabel(m.group(3));
+                    if (imm == -1) {
+                        this.error = "Undefined reference to '" + m.group(4) + "'.";
+                        return null;
+                    }
+                }
+                return new BTypePseudoInstruction(memoryModel, instructionType, rsB, imm, lineNum, inputLine);
             case "jal":
                 if (m.groupCount() == 1) {
                     rd = 1;
@@ -153,19 +174,31 @@ public class InstructionFactory {
                 }
                 return new JALInstruction(memoryModel, rd, imm, lineNum, inputLine);
             case "jalr":
-                rd = this.getRegister(m.group(1));
-                if (m.group(2).contains("x")) {
-                    String hex = m.group(2).split("x")[1];
-                    imm = (int) Long.parseLong(hex, 16);
+                if (m.groupCount() == 1) {
+                    rd = 1;
+                    int rs = this.getRegister(m.group(1));
+                    imm = 0;
+                    return new JALRInstruction(memoryModel, rd, rs, imm, lineNum, inputLine);
                 } else {
-                    imm = Integer.parseInt(m.group(2));
+                    rd = this.getRegister(m.group(1));
+                    if (m.group(2).contains("x")) {
+                        String hex = m.group(2).split("x")[1];
+                        imm = (int) Long.parseLong(hex, 16);
+                    } else {
+                        imm = Integer.parseInt(m.group(2));
+                    }
+                    rs1 = this.getRegister(m.group(3));
+                    if (imm < -2048 || imm > 2047) {
+                        this.error = "Immediate value " + imm + "exceeds jalr range.";
+                        return null;
+                    }
+                    return new JALRInstruction(memoryModel, rd, rs1, imm, lineNum, inputLine);
                 }
-                rs1 = this.getRegister(m.group(3));
-                if (imm < -2048 || imm > 2047) {
-                    this.error = "Immediate value " + imm +  "exceeds jalr range.";
-                    return null;
-                }
-                return new JALRInstruction(memoryModel, rd, rs1, imm, lineNum, inputLine);
+            case "jr":
+                rd = 0;
+                int rs = this.getRegister(m.group(1));
+                imm = 0;
+                return new JALRInstruction(memoryModel, rd, rs, imm, lineNum, inputLine);
             case "la":
                 rd = this.getRegister(m.group(1));
                 Integer address = this.memoryModel.lookupVariable(m.group(2));
@@ -185,8 +218,8 @@ public class InstructionFactory {
                 return new LIInstruction(memoryModel, rd, imm, lineNum, inputLine);
             case "mv", "not", "neg", "negw", "seqz", "snez", "sltz", "sgtz":
                 rd = this.getRegister(m.group(2));
-                int rs = this.getRegister(m.group(3));
-                return new UnaryInstruction(memoryModel, instructionType, rd, rs, lineNum, inputLine);
+                int rsJR = this.getRegister(m.group(3));
+                return new UnaryInstruction(memoryModel, instructionType, rd, rsJR, lineNum, inputLine);
             case "ret":
                 rd = 0;
                 imm = 0;

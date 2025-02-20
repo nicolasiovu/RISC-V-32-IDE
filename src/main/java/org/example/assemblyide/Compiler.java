@@ -46,11 +46,16 @@ public class Compiler implements EventHandler<ActionEvent> {
     private Pattern bTypeImm = Pattern.compile("^(beq|bne|blt|bge|bltu|bgeu|bgt|ble|bgtu|bleu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
     private Pattern bTypeLabel = Pattern.compile("^(beq|bne|blt|bge|bltu|bgeu|bgt|ble|bgtu|bleu)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
 
+    private Pattern bTypePseudoImm = Pattern.compile("^(beqz|bnez|blez|bgez|bltz|bgtz)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
+    private Pattern bTypePseudoLabel = Pattern.compile("^(beqz|bnez|blez|bgez|bltz|bgtz)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+
     private Pattern jalImm = Pattern.compile("^jal(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
     private Pattern jalShortImm = Pattern.compile("^jal(-?\\d+|0x[0-9a-fA-F]+)$");
     private Pattern jalLabel = Pattern.compile("^jal(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),([a-zA-Z_]+[a-zA-Z0-9_]*)$");
     private Pattern jalShortLabel = Pattern.compile("^jal([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+
     private Pattern jalr = Pattern.compile("^jalr(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?0|-?[1-9][0-9]*)\\((zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])\\)$");
+    private Pattern jalrShort = Pattern.compile("^jalr(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
 
     private Pattern uType = Pattern.compile("^(lui|auipc)(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1]),(-?\\d+|0x[0-9a-fA-F]+)$");
 
@@ -62,6 +67,9 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Pattern jImm = Pattern.compile("^j(-?\\d+|0x[0-9a-fA-F]+)$");
     private Pattern jLabel = Pattern.compile("^j([a-zA-Z_]+[a-zA-Z0-9_]*)$");
+
+    private Pattern jr = Pattern.compile("^jr(zero|ra|sp|gp|tp|t[0-6]|s[0-9]|s1[0-1]|a[0-7]|x[0-9]|x1[0-9]|x2[0-9]|x3[0-1])$");
+
     private Pattern ret = Pattern.compile("^ret$");
 
     public Compiler(MemoryModel memoryModel, TextEditor textEditor, TerminalPanel terminalPanel, IOTerminal io) {
@@ -169,6 +177,14 @@ public class Compiler implements EventHandler<ActionEvent> {
                     m = bTypeImm.matcher(line);
                 }
                 break;
+            case "beqz", "bnez", "blez", "bgez", "bltz", "bgtz":
+                if (bTypePseudoLabel.matcher(line).matches()) {
+                    m = bTypePseudoLabel.matcher(line);
+                    this.usesLabel = true;
+                } else {
+                    m = bTypePseudoImm.matcher(line);
+                }
+                break;
             case "jal":
                 if (jalLabel.matcher(line).matches()) {
                     m = jalLabel.matcher(line);
@@ -191,7 +207,14 @@ public class Compiler implements EventHandler<ActionEvent> {
                 }
                 break;
             case "jalr":
-                m = jalr.matcher(line);
+                if (jalrShort.matcher(line).matches()) {
+                    m = jalrShort.matcher(line);
+                } else {
+                    m = jalr.matcher(line);
+                }
+                break;
+            case "jr":
+                m = jr.matcher(line);
                 break;
             case "la":
                 m = la.matcher(line);
@@ -254,7 +277,8 @@ public class Compiler implements EventHandler<ActionEvent> {
             for (String input: inputs) {
                 int value;
                 if (input.contains("x")) {
-                    value = Integer.parseInt(input, 16);
+                    String hex = input.split("x")[1];
+                    value = (int) Long.parseLong(hex, 16);
                 } else {
                     value = Integer.parseInt(input);
                 }
@@ -274,7 +298,8 @@ public class Compiler implements EventHandler<ActionEvent> {
             for (String input: inputs) {
                 int value;
                 if (input.contains("x")) {
-                    value = Integer.parseInt(input, 16);
+                    String hex = input.split("x")[1];
+                    value = (int) Long.parseLong(hex, 16);
                 } else {
                     value = Integer.parseInt(input);
                 }
