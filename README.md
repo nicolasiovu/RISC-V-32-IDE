@@ -16,7 +16,9 @@ CURRENT PROJECT STATUS:
 
  - .data section support ✅
 
- - Pseudoinstructions support (almost all, more coming soon!)
+ - Pseudoinstructions support ✅
+
+ - File opening and saving ✅
 
 COMING SOON:
 
