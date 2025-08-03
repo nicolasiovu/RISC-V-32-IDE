@@ -78,7 +78,7 @@ public class MemoryModel extends Observable {
         this.variables.put(variable, address);
     }
 
-    public int lookupLabel(String label) {
+    public Integer lookupLabel(String label) {
         return this.labels.get(label);
     }
 

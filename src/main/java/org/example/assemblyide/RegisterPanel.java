@@ -52,7 +52,8 @@ public class RegisterPanel extends GridPane implements Observer {
             this.add(registerValue, 1, i + 1);
         }
 
-        this.setMaxWidth(250);
+        this.setMinWidth(150);
+        this.setMaxWidth(150);
         this.setStyle("-fx-background-color: #1e1e1e;" +
                 "-fx-border-color: #1e1e1e;" +
                 "-fx-border-radius: 0;");

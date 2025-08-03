@@ -25,6 +25,13 @@ public class Program implements EventHandler<ActionEvent> {
 
     public boolean run() {
         this.lastAction = 0;
+        if (this.memoryModel.getPc() == 0) {
+            String label = this.compiler.getStartingLabel();
+            if (label != null) {
+                int imm = this.memoryModel.lookupLabel(label) << 1;
+                this.memoryModel.setPc(imm);
+            }
+        }
         if (this.awaitingInput) {
             this.error = "Cannot step: awaiting user input.";
             return false;

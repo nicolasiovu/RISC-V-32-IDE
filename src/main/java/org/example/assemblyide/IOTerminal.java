@@ -18,7 +18,7 @@ public class IOTerminal extends TextArea{
 
         this.minWidth(200);
         this.setEditable(false);
-        this.setWrapText(false);
+        this.setWrapText(true);
 
         this.setStyle("-fx-background-color: #000000;" +
                 "-fx-control-inner-background: #1e1e1e;" +

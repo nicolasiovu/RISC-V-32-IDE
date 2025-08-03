@@ -1,0 +1,66 @@
+.text-area .scroll-pane {
+    -fx-vbar-policy: ALWAYS;
+    -fx-hbar-policy: NEVER;
+}
+
+.scroll-bar {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #1e1e1e;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.scroll-bar .track-background {
+    -fx-background-color: #2d2d2d;
+    -fx-background-radius: 0;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #5a5a5a;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #679ea6;
+}
+
+.scroll-bar .thumb:pressed {
+    -fx-background-color: #7aabb2;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #5a5a5a;
+}
+
+.scroll-bar:vertical .increment-arrow {
+    -fx-shape: "M 0 0 L 4 0 L 2 3 z";
+}
+
+.scroll-bar:vertical .decrement-arrow {
+    -fx-shape: "M 0 3 L 4 3 L 2 0 z";
+}
+
+.scroll-bar:horizontal .increment-arrow {
+    -fx-shape: "M 0 0 L 0 4 L 3 2 z";
+}
+
+.scroll-bar:horizontal .decrement-arrow {
+    -fx-shape: "M 3 0 L 3 4 L 0 2 z";
+}

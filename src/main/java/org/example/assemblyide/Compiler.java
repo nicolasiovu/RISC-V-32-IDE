@@ -18,6 +18,8 @@ public class Compiler implements EventHandler<ActionEvent> {
     private boolean inData;
     private int staticAddressPtr;
 
+    private String startingLabel;
+
     private Pattern wordStatic = Pattern.compile("^([a-zA-Z_]+[a-zA-Z0-9_]*):\\.word(-?\\d+|0x[0-9a-fA-F]+)(,(-?\\d+|0x[0-9a-fA-F]+))*$");
     private Pattern wordGrouper = Pattern.compile("(\\w+):\\.word(.+)");
 
@@ -72,6 +74,8 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     private Pattern ret = Pattern.compile("^ret$");
 
+    private Pattern globl = Pattern.compile("^\\.(globl|global)([a-zA-Z_]+[a-zA-Z0-9_]*)");
+
     public Compiler(MemoryModel memoryModel, TextEditor textEditor, TerminalPanel terminalPanel, IOTerminal io) {
         this.memoryModel = memoryModel;
         this.textEditor = textEditor;
@@ -82,12 +86,14 @@ public class Compiler implements EventHandler<ActionEvent> {
         this.usesLabel = false;
         this.inData = false;
         this.staticAddressPtr = 0x00000004;
+        this.startingLabel = null;
     }
 
     public boolean compile() {
         this.instructions.clear();
         this.memoryModel.resetLabels();
         this.staticAddressPtr = 0x00000004;
+        this.startingLabel = null;
         this.setLabels();
         this.inData = false;
         this.usesLabel = false;
@@ -120,6 +126,14 @@ public class Compiler implements EventHandler<ActionEvent> {
                     return false;
                 }
                 continue;
+            }
+            if ((m = this.globl.matcher(line)).matches() && !this.inData) {
+                String label = m.group(2);
+                if (this.memoryModel.lookupLabel(label) == null) {
+                    this.error = "Line " + lineNumber + ": '" + originalLine + "' Unrecognized label.";
+                    return false;
+                }
+                this.startingLabel = label;
             }
             m = this.decodeInstruction(line);
             line = line.trim();
@@ -383,6 +397,10 @@ public class Compiler implements EventHandler<ActionEvent> {
 
     public ArrayList<Instruction> getInstructions() {
         return this.instructions;
+    }
+
+    public String getStartingLabel() {
+        return this.startingLabel;
     }
 
     @Override

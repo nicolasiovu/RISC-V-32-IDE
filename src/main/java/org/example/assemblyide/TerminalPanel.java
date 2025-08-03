@@ -5,9 +5,9 @@ import javafx.scene.control.TextArea;
 public class TerminalPanel extends TextArea{
 
     public TerminalPanel() {
-        this.setMinHeight(300);
+        this.setMinHeight(150);
         this.setEditable(false);
-        this.setWrapText(false);
+        this.setWrapText(true);
 
         this.setStyle("-fx-background-color: #000000;" +
                 "-fx-control-inner-background: #1e1e1e;" +

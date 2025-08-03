@@ -16,8 +16,12 @@ public class TextEditor extends TextArea {
         this.memoryModel = memoryModel;
         this.lineNumberPanel = lineNumberPanel;
 
-        this.setMinWidth(720);
-        this.setMinHeight(500);
+//        this.setMinWidth(720);
+//        this.setMinHeight(500);
+
+        this.setWrapText(true); // Enable text wrapping
+        this.setScrollLeft(0);
+        this.setScrollTop(0);
 
         this.setStyle("-fx-background-color: #000000;" +
         "-fx-control-inner-background: #1e1e1e;" +
@@ -34,7 +38,7 @@ public class TextEditor extends TextArea {
         "-fx-background-radius: 0;" +
         "-fx-border-radius: 0;");
 
-        String css = getClass().getResource("/scrollbar.css").toExternalForm();
+        String css = getClass().getResource("/editorscrollbar.css").toExternalForm();
         this.getStylesheets().add(css);
 
         this.textProperty().addListener((observable, oldValue, newValue) -> {

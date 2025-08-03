@@ -9,8 +9,8 @@ import javafx.scene.text.Font;
 public class LineNumberPanel extends TextArea {
 
     public LineNumberPanel() {
-        this.setMaxWidth(40);
-        this.setMinHeight(500);
+        this.setPrefWidth(60); // Preferred width instead of max
+        this.setMaxWidth(80);  // Allow some growth
         this.setEditable(false);
         this.setWrapText(false);
 
