@@ -124,7 +124,13 @@ public class IOTerminal extends TextArea{
 
     private void readCharacter() {
         String input = this.getText(this.inputStartPos, this.getLength()).trim();
-        char c = input.toCharArray()[0];
+        char[] arr = input.toCharArray();
+        char c;
+        try {
+            c = arr[0];
+        } catch (Exception _) {
+            c = (char) 0;
+        }
         this.memoryModel.updateRegister(10, c);
     }
 
